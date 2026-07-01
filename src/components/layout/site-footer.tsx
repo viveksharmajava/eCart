@@ -1,0 +1,63 @@
+import Link from 'next/link';
+import { APP_NAME, ROUTES } from '@/constants';
+import { Separator } from '@/components/ui/separator';
+
+export async function SiteFooter() {
+  const footerLinks = {
+    support: [
+      { label: 'Help Center', href: ROUTES.help },
+      { label: 'Contact Us', href: ROUTES.contact },
+      { label: 'Shipping Policy', href: ROUTES.shipping },
+      { label: 'Returns', href: ROUTES.refund },
+    ],
+    company: [
+      { label: 'About Us', href: ROUTES.about },
+      { label: 'Privacy Policy', href: ROUTES.privacy },
+      { label: 'Terms & Conditions', href: ROUTES.terms },
+    ],
+    shop: [
+      { label: 'All Products', href: ROUTES.products },
+      { label: 'Badminton', href: '/products?category=badminton' },
+      { label: 'Cricket', href: '/products?category=cricket' },
+      { label: 'Sports Shoes', href: '/products?category=sports-shoes' },
+    ],
+  };
+
+  return (
+    <footer className="border-t bg-secondary/50">
+      <div className="container-store py-12 lg:py-16">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <p className="text-lg font-black uppercase tracking-tighter">{APP_NAME}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Performance gear for athletes who demand more. Engineered for every game.
+            </p>
+          </div>
+          {Object.entries(footerLinks).map(([section, links]) => (
+            <div key={section}>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                {section}
+              </p>
+              <ul className="mt-4 space-y-2">
+                {links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-foreground/80 transition-colors hover:text-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <Separator className="my-8" />
+        <p className="text-center text-xs text-muted-foreground">
+          © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  );
+}

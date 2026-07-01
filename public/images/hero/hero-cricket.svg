@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="Cricket">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0d1b0d"/>
+      <stop offset="50%" style="stop-color:#111111"/>
+      <stop offset="100%" style="stop-color:#2d5016"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="80%" cy="50%" r="45%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#4ade80;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+  <rect x="1400" y="200" width="8" height="500" rx="4" fill="#d4a574" fill-opacity="0.4"/>
+  <ellipse cx="1404" cy="720" rx="60" ry="18" fill="#d4a574" fill-opacity="0.25"/>
+  <text x="120" y="980" fill="#ffffff" fill-opacity="0.06" font-family="Arial Black, sans-serif" font-size="220" font-weight="900">CRICKET</text>
+</svg>

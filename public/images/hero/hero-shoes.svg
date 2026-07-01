@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="Sports shoes">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" style="stop-color:#111111"/>
+      <stop offset="100%" style="stop-color:#1c1917"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="70%" cy="60%" r="40%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.35"/>
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+  <path d="M1280 620 Q1380 520 1580 540 L1650 600 Q1620 680 1480 700 L1320 680 Z" fill="#ef4444" fill-opacity="0.35"/>
+  <path d="M1300 640 Q1400 560 1560 575 L1610 620 Q1585 660 1470 675 L1330 660 Z" fill="#ffffff" fill-opacity="0.12"/>
+  <text x="120" y="980" fill="#ffffff" fill-opacity="0.06" font-family="Arial Black, sans-serif" font-size="180" font-weight="900">SPORTS SHOES</text>
+</svg>
