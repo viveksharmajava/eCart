@@ -75,27 +75,41 @@ export function ProductCard({
     });
   }
 
+  const wishlistOnImage = (
+    <div className="absolute right-2 top-2 z-10">
+      <AmazonWishlistButton
+        product={product}
+        imageUrl={imageUrl}
+        iconOnly
+        className="shadow-sm"
+      />
+    </div>
+  );
+
   if (variant === 'amazon') {
     return (
-      <article className={cn('amazon-product-card group', className)}>
-        <Link href={ROUTES.product(slug)} className="amazon-product-card__image-wrap block">
-          <div className="amazon-product-card__image">
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={displayName}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                priority={priority}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm text-[#565959]">
-                No image
-              </div>
-            )}
-          </div>
-        </Link>
+      <article className={cn('amazon-product-card group relative', className)}>
+        <div className="relative">
+          <Link href={ROUTES.product(slug)} className="amazon-product-card__image-wrap block">
+            <div className="amazon-product-card__image">
+              {imageUrl ? (
+                <Image
+                  src={imageUrl}
+                  alt={displayName}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                  priority={priority}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-sm text-[#565959]">
+                  No image
+                </div>
+              )}
+            </div>
+          </Link>
+          {wishlistOnImage}
+        </div>
 
         <div className="amazon-product-card__body">
           {showBrand && (
@@ -118,19 +132,11 @@ export function ProductCard({
             <AmazonMrpRow mrp={mrp} currency={product.currency} discountPercent={discount} />
           )}
 
-          <div className="mt-2.5 flex items-center gap-2">
-            <AmazonAddToCartButton
-              onClick={handleAddToCart}
-              disabled={!purchasable}
-              className="mt-0 min-w-0 flex-1"
-            />
-            <AmazonWishlistButton
-              product={product}
-              imageUrl={imageUrl}
-              iconOnly
-              className="mt-0"
-            />
-          </div>
+          <AmazonAddToCartButton
+            onClick={handleAddToCart}
+            disabled={!purchasable}
+            className="mt-2.5"
+          />
         </div>
       </article>
     );
@@ -138,24 +144,27 @@ export function ProductCard({
 
   return (
     <article className={cn('group relative flex flex-col', className)}>
-      <Link href={ROUTES.product(slug)} className="block overflow-hidden rounded-lg bg-secondary">
-        <div className="relative aspect-[4/5] overflow-hidden">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={displayName}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              priority={priority}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
-              No image
-            </div>
-          )}
-        </div>
-      </Link>
+      <div className="relative">
+        <Link href={ROUTES.product(slug)} className="block overflow-hidden rounded-lg bg-secondary">
+          <div className="relative aspect-[4/5] overflow-hidden">
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={displayName}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                priority={priority}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
+                No image
+              </div>
+            )}
+          </div>
+        </Link>
+        {wishlistOnImage}
+      </div>
 
       <div className="mt-3 flex flex-1 flex-col gap-1">
         {showBrand && (
@@ -195,14 +204,10 @@ export function ProductCard({
           </p>
         )}
 
-        <div className="flex gap-2">
-          <AmazonAddToCartButton
-            onClick={handleAddToCart}
-            disabled={!purchasable}
-            className="mt-0 flex-1"
-          />
-          <AmazonWishlistButton product={product} imageUrl={imageUrl} className="mt-0 flex-1" />
-        </div>
+        <AmazonAddToCartButton
+          onClick={handleAddToCart}
+          disabled={!purchasable}
+        />
       </div>
     </article>
   );
