@@ -92,8 +92,8 @@ export function useProductFilters() {
     if (filters.minRating != null) n++;
     if (filters.inStock) n++;
     if (filters.onSale) n++;
-    return n;
-  }, [filters]);
+    if (filters.categoryId) n++;
+    return n;  }, [filters]);
 
   return {
     filters,

@@ -2,6 +2,7 @@ import type { ProductSummary } from '@/types/catalog';
 import type { ProductPrice } from '@/types/pricing';
 import { getProductImages } from '@/services/catalog.service';
 import { getProductPrices } from '@/services/pricing.service';
+import { getInventorySummaries } from '@/services/facility.service';
 import { pickPrimaryProductImageUrl } from '@/lib/product-images';
 import { attachPrice, type PricedProduct } from '@/utils/pricing';
 import type { EnrichedListProduct } from '@/types/filters';
@@ -19,8 +20,30 @@ export function mockRating(productId: string): { rating: number; reviewCount: nu
   return { rating: Math.round(rating * 10) / 10, reviewCount };
 }
 
-export function isInStock(statusId?: string): boolean {
+/** Legacy catalog-only check when inventory service is not used. */
+export function isCatalogStatusActive(statusId?: string): boolean {
   return !statusId || statusId === 'PRODUCT_ACTIVE' || statusId.includes('ACTIVE');
+}
+
+export function requiresInventoryCheck(product: Pick<ProductSummary, 'requireInventory'>): boolean {
+  return product.requireInventory === true;
+}
+
+/**
+ * In-stock when facility ATP > 0 for inventory-tracked products;
+ * otherwise falls back to catalog product status.
+ */
+export function isInStock(
+  product: Pick<ProductSummary, 'statusId' | 'requireInventory'>,
+  availableToPromise?: number | null,
+): boolean {
+  if (requiresInventoryCheck(product)) {
+    if (availableToPromise != null) {
+      return availableToPromise > 0;
+    }
+    return false;
+  }
+  return isCatalogStatusActive(product.statusId);
 }
 
 /** When true, Add to Cart / Buy Now work regardless of stock (testing only). */
@@ -31,12 +54,16 @@ export function bypassStockCheck(): boolean {
   return process.env.NODE_ENV === 'development';
 }
 
-export function canPurchase(statusId?: string): boolean {
-  return bypassStockCheck() || isInStock(statusId);
+export function canPurchase(
+  product: Pick<ProductSummary, 'statusId' | 'requireInventory'>,
+  availableToPromise?: number | null,
+): boolean {
+  return bypassStockCheck() || isInStock(product, availableToPromise);
 }
 
 export async function enrichProduct(
   product: ProductSummary,
+  inventoryByProduct?: Map<string, { availableToPromise?: number }>,
 ): Promise<EnrichedListProduct> {
   const [prices, images] = await Promise.all([
     getProductPrices(product.productId).catch(() => [] as ProductPrice[]),
@@ -45,19 +72,27 @@ export async function enrichProduct(
   const priced = attachPrice(product, prices);
   const imageUrl = pickPrimaryProductImageUrl(product.productId, images, product);
   const { rating, reviewCount } = mockRating(product.productId);
+  const atp = inventoryByProduct?.get(product.productId)?.availableToPromise;
   return {
     ...priced,
+    requireInventory: product.requireInventory,
     imageUrl,
     rating,
     reviewCount,
-    inStock: isInStock(product.statusId),
+    availableToPromise: atp,
+    inStock: isInStock(product, atp),
   };
 }
 
 export async function enrichProducts(
   products: ProductSummary[],
 ): Promise<EnrichedListProduct[]> {
-  return Promise.all(products.map(enrichProduct));
+  const inventoryTracked = products.filter(requiresInventoryCheck);
+  const inventoryByProduct =
+    inventoryTracked.length > 0
+      ? await getInventorySummaries(inventoryTracked.map((p) => p.productId))
+      : new Map();
+  return Promise.all(products.map((p) => enrichProduct(p, inventoryByProduct)));
 }
 
 export function sortProducts(

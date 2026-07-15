@@ -4,6 +4,7 @@ const catalogBase = process.env.CATALOG_PROXY_TARGET ?? 'http://localhost:8080';
 const pricingBase = process.env.PRICING_PROXY_TARGET ?? 'http://localhost:8081';
 const partyBase = process.env.PARTY_PROXY_TARGET ?? 'http://localhost:8082';
 const ordersBase = process.env.ORDERS_PROXY_TARGET ?? 'http://localhost:8083';
+const facilityBase = process.env.FACILITY_PROXY_TARGET ?? 'http://localhost:8084';
 
 const allowedDevOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? '10.30.169.213')
   .split(',')
@@ -31,6 +32,7 @@ const nextConfig: NextConfig = {
       { source: '/pricing/:path*', destination: `${pricingBase}/pricing/:path*` },
       { source: '/party/:path*', destination: `${partyBase}/party/:path*` },
       { source: '/orders/:path*', destination: `${ordersBase}/orders/:path*` },
+      { source: '/facility/:path*', destination: `${facilityBase}/facility/:path*` },
     ];
   },
   async headers() {

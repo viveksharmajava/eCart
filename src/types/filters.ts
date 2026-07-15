@@ -30,6 +30,8 @@ export interface ProductFilters {
 export interface ProductFacets {
   brands: Array<{ value: string; label: string; count: number }>;
   categories: Array<{ value: string; label: string; count: number }>;
+  /** Browse categories for the active catalog (when catalogId is in the URL). */
+  catalogCategories?: Array<{ value: string; label: string; count: number }>;
   priceRange: { min: number; max: number };
   ratings: Array<{ value: number; label: string; count: number }>;
 }
@@ -42,6 +44,7 @@ export interface EnrichedListProduct {
   productName?: string;
   description?: string;
   statusId?: string;
+  requireInventory?: boolean;
   listPrice?: number;
   salePrice?: number;
   currency?: string;
@@ -50,6 +53,7 @@ export interface EnrichedListProduct {
   rating?: number;
   reviewCount?: number;
   inStock?: boolean;
+  availableToPromise?: number;
 }
 
 export interface SearchSuggestion {

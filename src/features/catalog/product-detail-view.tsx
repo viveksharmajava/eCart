@@ -84,11 +84,19 @@ interface ProductDetailViewProps {
 
   videoUrl?: string;
 
+  availableToPromise?: number;
+
 }
 
 
 
-export function ProductDetailView({ product, gallery, variants, videoUrl }: ProductDetailViewProps) {
+export function ProductDetailView({
+  product,
+  gallery,
+  variants,
+  videoUrl,
+  availableToPromise,
+}: ProductDetailViewProps) {
 
   const attributeGroups = useMemo(
 
@@ -112,8 +120,8 @@ export function ProductDetailView({ product, gallery, variants, videoUrl }: Prod
 
   const displayName = product.productName ?? product.internalName ?? product.productId;
 
-  const inStock = isInStock(product.statusId);
-  const purchasable = canPurchase(product.statusId);
+  const inStock = isInStock(product, availableToPromise);
+  const purchasable = canPurchase(product, availableToPromise);
 
   const primaryImage = gallery[0]?.displayUrl;
 
@@ -129,9 +137,11 @@ export function ProductDetailView({ product, gallery, variants, videoUrl }: Prod
 
       inStock,
 
+      availableToPromise,
+
     }),
 
-    [product, primaryImage, inStock],
+    [product, primaryImage, inStock, availableToPromise],
 
   );
 

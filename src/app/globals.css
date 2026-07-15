@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 
-@theme inline {
-  --color-background: var(--background);
+@theme inline {  --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -83,3 +82,5 @@
     display: none;
   }
 }
+
+@import '../styles/amazon-plp.css';

@@ -2,14 +2,23 @@ import { ROUTES } from '@/constants';
 import { slugify } from '@/lib/utils';
 
 /** Product listing URL scoped to a catalog category (uses categoryId for API lookup). */
-export function productsCategoryHref(categoryId: string, categoryName?: string): string {
+export function productsCategoryHref(
+  categoryId: string,
+  categoryName?: string,
+  catalogId?: string,
+  catalogName?: string,
+): string {
   const params = new URLSearchParams();
   params.set('categoryId', categoryId);
   const label = categoryName?.trim() || categoryId;
   params.set('category', slugify(label) || categoryId);
+  if (catalogId) {
+    params.set('catalogId', catalogId);
+    const catalogLabel = catalogName?.trim() || catalogId;
+    params.set('catalog', slugify(catalogLabel) || catalogId);
+  }
   return `${ROUTES.products}?${params.toString()}`;
 }
-
 /** Product listing URL for a catalog (browse-all; slug is display-only). */
 export function productsCatalogHref(catalogId: string, catalogName?: string): string {
   const params = new URLSearchParams();

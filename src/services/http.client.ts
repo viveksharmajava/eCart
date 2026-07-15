@@ -52,6 +52,13 @@ function resolveServerServiceOrigin(path: string): string {
         'http://localhost:8083',
     );
   }
+  if (path.startsWith('/facility')) {
+    return stripTrailingSlash(
+      process.env.FACILITY_API_BASE ??
+        process.env.FACILITY_PROXY_TARGET ??
+        'http://localhost:8084',
+    );
+  }
   if (path.startsWith('/api')) {
     return stripTrailingSlash(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
   }

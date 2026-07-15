@@ -8,7 +8,7 @@ import { useProductFilters } from '@/hooks/use-product-filters';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, slugify } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 async function fetchFacets(queryString: string): Promise<ProductFacets> {
@@ -32,8 +32,8 @@ export function ProductFiltersPanel({ onApplied }: ProductFiltersPanelProps) {
 
   const priceMin = facets?.priceRange.min ?? 0;
   const priceMax = facets?.priceRange.max ?? 10000;
-  const currentRange: [number, number] = [
-    filters.minPrice ?? priceMin,
+  const catalogCategories = facets?.catalogCategories ?? [];
+  const currentRange: [number, number] = [    filters.minPrice ?? priceMin,
     filters.maxPrice ?? priceMax,
   ];
 
@@ -70,11 +70,43 @@ export function ProductFiltersPanel({ onApplied }: ProductFiltersPanelProps) {
         </p>
       </section>
 
+      {catalogCategories.length > 0 && (
+        <>
+          <Separator />
+          <section>
+            <h3 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
+              Categories
+            </h3>
+            <div className="max-h-48 space-y-2 overflow-y-auto">
+              {catalogCategories.map((category) => (
+                <label
+                  key={category.value}
+                  className="flex cursor-pointer items-center gap-2 text-sm"
+                >
+                  <Checkbox
+                    checked={filters.categoryId === category.value}
+                    onCheckedChange={(checked) =>
+                      apply({
+                        categoryId: checked ? category.value : undefined,
+                        category: checked
+                          ? slugify(category.label) || category.value
+                          : undefined,
+                      })
+                    }
+                  />
+                  <span className="flex-1">{category.label}</span>
+                  <span className="text-xs text-muted-foreground">({category.count})</span>
+                </label>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
       <Separator />
 
       <section>
-        <h3 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Brand</h3>
-        <div className="max-h-40 space-y-2 overflow-y-auto">
+        <h3 className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Brand</h3>        <div className="max-h-40 space-y-2 overflow-y-auto">
           {(facets?.brands ?? []).map((brand) => (
             <label key={brand.value} className="flex cursor-pointer items-center gap-2 text-sm">
               <Checkbox
@@ -144,7 +176,19 @@ export function ActiveFilterChips() {
       onRemove: () => setFilters({ category: undefined, categoryId: undefined }),
     });
   }
-  if (filters.brand) chips.push({ key: 'brand', label: filters.brand, onRemove: () => setFilters({ brand: undefined }) });
+  if (filters.catalog || filters.catalogId) {
+    chips.push({
+      key: 'catalog',
+      label: (filters.catalog ?? filters.catalogId)!.replace(/-/g, ' '),
+      onRemove: () =>
+        setFilters({
+          catalog: undefined,
+          catalogId: undefined,
+          category: undefined,
+          categoryId: undefined,
+        }),
+    });
+  }  if (filters.brand) chips.push({ key: 'brand', label: filters.brand, onRemove: () => setFilters({ brand: undefined }) });
   if (filters.minPrice != null || filters.maxPrice != null) {
     chips.push({
       key: 'price',

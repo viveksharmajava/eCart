@@ -1,64 +1,40 @@
 import { productsCategoryHref, productsCatalogHref } from '@/lib/category-links';
 import { resolveCategoryImageUrl } from '@/lib/category-images';
 import { findCartEnabledProdCatalogs, getCatalogCategories } from '@/services/catalog.service';
+import { pickBrowseCatalogCategories } from '@/features/catalog/catalog-categories';
 import { getStorefrontSettings } from '@/features/store/storefront-settings';
 import type { ProdCatalogCategory, ProdCatalogSummary } from '@/types/catalog';
 import type { CatalogNavItem, NavCategoryItem } from '@/types/nav';
 import { ROUTES, SPORT_NAV } from '@/constants';
 import { cache } from 'react';
 
-/** Catalog–category link types shown in storefront browse navigation. */
-const NAV_CATALOG_CATEGORY_TYPES = new Set([
-  'PCCT_BROWSE_ROOT',
-  'PCCT_OTHER_SEARCH',
-  'PCCT_QUICK_ADD',
-]);
-
-const PROMO_CATALOG_CATEGORY_TYPES = new Set([
-  'PCCT_MOST_POPULAR',
-  'PCCT_WHATS_NEW',
-  'PCCT_PROMOTIONS',
-  'PCCT_SEARCH',
-]);
-
-function categoryHref(category: ProdCatalogCategory): string {
-  return productsCategoryHref(category.categoryId, category.categoryName);
+function categoryHref(category: ProdCatalogCategory, catalog: ProdCatalogSummary): string {
+  return productsCategoryHref(
+    category.categoryId,
+    category.categoryName,
+    catalog.prodCatalogId,
+    catalog.catalogName,
+  );
 }
 
-function mapNavCategory(category: ProdCatalogCategory): NavCategoryItem {
+function mapNavCategory(
+  category: ProdCatalogCategory,
+  catalog: ProdCatalogSummary,
+): NavCategoryItem {
   return {
     categoryId: category.categoryId,
     categoryName: category.categoryName ?? category.categoryId,
     imageUrl: resolveCategoryImageUrl(category.categoryId, category.categoryImageUrl),
-    href: categoryHref(category),
+    href: categoryHref(category, catalog),
   };
 }
 
-function pickNavCategories(categories: ProdCatalogCategory[]): NavCategoryItem[] {
-  const sorted = [...categories].sort(
-    (a, b) => (a.sequenceNum ?? 999) - (b.sequenceNum ?? 999),
-  );
-
-  let filtered = sorted.filter((c) =>
-    NAV_CATALOG_CATEGORY_TYPES.has(c.prodCatalogCategoryTypeId),
-  );
-  if (filtered.length === 0) {
-    filtered = sorted.filter((c) => !PROMO_CATALOG_CATEGORY_TYPES.has(c.prodCatalogCategoryTypeId));
-  }
-  if (filtered.length === 0) {
-    filtered = sorted;
-  }
-
-  const seen = new Set<string>();
-  const items: NavCategoryItem[] = [];
-  for (const cat of filtered) {
-    if (seen.has(cat.categoryId)) continue;
-    seen.add(cat.categoryId);
-    items.push(mapNavCategory(cat));
-  }
-  return items.slice(0, 8);
+function pickNavCategories(
+  categories: ProdCatalogCategory[],
+  catalog: ProdCatalogSummary,
+): NavCategoryItem[] {
+  return pickBrowseCatalogCategories(categories, 8).map((c) => mapNavCategory(c, catalog));
 }
-
 function fallbackNav(): CatalogNavItem[] {
   return SPORT_NAV.map((item) => ({
     prodCatalogId: item.label,
@@ -92,7 +68,7 @@ export const getCatalogNav = cache(async (): Promise<CatalogNavItem[]> => {
     const items = await Promise.all(
       catalogs.map(async (catalog) => {
         const categories = await getCatalogCategories(catalog.prodCatalogId).catch(() => []);
-        const navCategories = pickNavCategories(categories);
+        const navCategories = pickNavCategories(categories, catalog);
         const label = catalog.catalogName ?? catalog.prodCatalogId;
         return {
           prodCatalogId: catalog.prodCatalogId,

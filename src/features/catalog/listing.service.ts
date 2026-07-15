@@ -1,4 +1,5 @@
 import { findProducts, getCategoryProducts } from '@/services/catalog.service';
+import { loadBrowseCatalogCategories } from '@/features/catalog/catalog-categories';
 import type { ProductSummary } from '@/types/catalog';
 import type { ProductFilters } from '@/types/filters';
 import {
@@ -9,13 +10,30 @@ import {
 
 const CATALOG_FETCH_SIZE = 200;
 
+async function fetchCatalogProducts(catalogId: string): Promise<ProductSummary[]> {
+  const categories = await loadBrowseCatalogCategories(catalogId);
+  if (categories.length === 0) return [];
+
+  const map = new Map<string, ProductSummary>();
+  for (const category of categories) {
+    const products = await getCategoryProducts(category.categoryId).catch(() => []);
+    for (const product of products) {
+      map.set(product.productId, product);
+    }
+  }
+  return [...map.values()];
+}
+
 async function fetchBaseProducts(filters: ProductFilters): Promise<ProductSummary[]> {
-  const { q, brand, category, categoryId } = filters;
+  const { q, brand, category, categoryId, catalogId } = filters;
 
   if (categoryId) {
     return getCategoryProducts(categoryId);
   }
 
+  if (catalogId) {
+    return fetchCatalogProducts(catalogId);
+  }
   if (q) {
     const page = await findProducts({
       noConditionFind: false,
@@ -102,7 +120,7 @@ export async function listProducts(filters: ProductFilters, page = 0, size = 20)
 }
 
 export async function listAllEnrichedForFacets(
-  filters: Pick<ProductFilters, 'q' | 'brand' | 'category' | 'categoryId'>,
+  filters: Pick<ProductFilters, 'q' | 'brand' | 'category' | 'categoryId' | 'catalogId'>,
 ) {
   const base = await fetchBaseProducts(filters);
   return enrichProducts(base);

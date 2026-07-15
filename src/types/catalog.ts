@@ -6,6 +6,7 @@ export interface ProductSummary {
   productName?: string;
   description?: string;
   statusId?: string;
+  requireInventory?: boolean;
   sku?: string;
   weight?: number;
   weightUomId?: string;

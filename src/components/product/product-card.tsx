@@ -2,33 +2,139 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingBag, Star } from 'lucide-react';
 import type { PricedProduct } from '@/utils/pricing';
 import type { EnrichedListProduct } from '@/types/filters';
 import { ROUTES } from '@/constants';
 import { productSlug } from '@/lib/utils';
 import { useCartStore } from '@/store/cart.store';
-import { useWishlistStore } from '@/store/wishlist.store';
-import { Button } from '@/components/ui/button';
-import { ProductPriceDisplay } from '@/components/product/product-price-display';
+import { canPurchase } from '@/features/catalog/product-enrichment';
+import { AmazonAddToCartButton } from '@/components/product/amazon-add-to-cart-button';
+import { AmazonWishlistButton } from '@/components/product/amazon-wishlist-button';
+import { AmazonMrpRow, AmazonPriceDisplay } from '@/components/product/amazon-price-display';
 import { cn } from '@/lib/utils';
 
-type CardProduct = (PricedProduct | EnrichedListProduct) & { imageUrl?: string; rating?: number };
+type CardProduct = (PricedProduct | EnrichedListProduct) & {
+  imageUrl?: string;
+  availableToPromise?: number;
+};
 
 interface ProductCardProps {
   product: CardProduct;
   imageUrl?: string;
   className?: string;
   priority?: boolean;
+  /** Amazon.in-style card for the products listing page */
+  variant?: 'default' | 'amazon';
 }
 
-export function ProductCard({ product, imageUrl, className, priority }: ProductCardProps) {
+function resolveDiscountPercent(
+  salePrice?: number,
+  listPrice?: number,
+  discountPercent?: number,
+): number | undefined {
+  if (discountPercent != null && discountPercent > 0) return discountPercent;
+  if (listPrice != null && salePrice != null && listPrice > salePrice) {
+    return Math.round(((listPrice - salePrice) / listPrice) * 100);
+  }
+  return undefined;
+}
+
+export function ProductCard({
+  product,
+  imageUrl,
+  className,
+  priority,
+  variant = 'default',
+}: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
-  const toggle = useWishlistStore((s) => s.toggle);
-  const inWishlist = useWishlistStore((s) => s.has(product.productId ?? ''));
   if (!product.productId) return null;
+
   const slug = productSlug(product.productId, product.productName ?? product.internalName);
   const displayName = product.productName ?? product.internalName ?? product.productId;
+  const brandName = product.brandName?.trim();
+  const brandMatchesName =
+    brandName != null && brandName.toLowerCase() === displayName.trim().toLowerCase();
+  const showBrand = Boolean(brandName) && !brandMatchesName;
+  const showProductName = !brandName || brandMatchesName;
+  const sellingPrice = product.salePrice ?? product.listPrice;
+  const mrp = product.listPrice;
+  const showMrp = mrp != null && sellingPrice != null && mrp > sellingPrice;
+  const discount = resolveDiscountPercent(product.salePrice, product.listPrice, product.discountPercent);
+  const purchasable = canPurchase(product, product.availableToPromise);
+
+  function handleAddToCart() {
+    addItem({
+      productId: product.productId,
+      productName: displayName,
+      brandName: product.brandName,
+      imageUrl,
+      quantity: 1,
+      unitPrice: product.salePrice ?? product.listPrice ?? 0,
+      listPrice: product.listPrice,
+      currency: product.currency,
+    });
+  }
+
+  if (variant === 'amazon') {
+    return (
+      <article className={cn('amazon-product-card group', className)}>
+        <Link href={ROUTES.product(slug)} className="amazon-product-card__image-wrap block">
+          <div className="amazon-product-card__image">
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={displayName}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                priority={priority}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm text-[#565959]">
+                No image
+              </div>
+            )}
+          </div>
+        </Link>
+
+        <div className="amazon-product-card__body">
+          {showBrand && (
+            <p className="amazon-product-card__brand">{brandName}</p>
+          )}
+
+          {showProductName && (
+            <Link href={ROUTES.product(slug)} className="amazon-product-card__title">
+              {displayName}
+            </Link>
+          )}
+
+          {sellingPrice != null ? (
+            <AmazonPriceDisplay amount={sellingPrice} currency={product.currency} />
+          ) : (
+            <p className="text-sm text-[#565959]">Price on request</p>
+          )}
+
+          {showMrp && mrp != null && (
+            <AmazonMrpRow mrp={mrp} currency={product.currency} discountPercent={discount} />
+          )}
+
+          <div className="mt-2.5 flex items-center gap-2">
+            <AmazonAddToCartButton
+              onClick={handleAddToCart}
+              disabled={!purchasable}
+              className="mt-0 min-w-0 flex-1"
+            />
+            <AmazonWishlistButton
+              product={product}
+              imageUrl={imageUrl}
+              iconOnly
+              className="mt-0"
+            />
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className={cn('group relative flex flex-col', className)}>
@@ -48,74 +154,54 @@ export function ProductCard({ product, imageUrl, className, priority }: ProductC
               No image
             </div>
           )}
-          {(product.discountPercent ?? 0) > 0 && (
-            <span className="absolute left-2 top-2 rounded-md bg-accent px-2 py-0.5 text-xs font-bold text-accent-foreground">
-              {product.discountPercent}% OFF
-            </span>
-          )}
-          <div className="absolute right-2 top-2 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-9 w-9 rounded-full shadow"
-              onClick={(e) => {
-                e.preventDefault();
-                toggle(product);
-              }}
-              aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-            >
-              <Heart className={cn(inWishlist && 'fill-accent text-accent')} />
-            </Button>
-          </div>
         </div>
       </Link>
 
-      <div className="mt-3 flex flex-1 flex-col">
-        {product.brandName && (
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {product.brandName}
+      <div className="mt-3 flex flex-1 flex-col gap-1">
+        {showBrand && (
+          <p className="text-sm font-bold leading-snug">{brandName}</p>
+        )}
+
+        {showProductName && (
+          <Link
+            href={ROUTES.product(slug)}
+            className="line-clamp-2 text-sm font-medium leading-snug hover:underline"
+          >
+            {displayName}
+          </Link>
+        )}
+
+        {sellingPrice != null ? (
+          <p className="text-sm font-semibold">
+            {new Intl.NumberFormat('en-IN', {
+              style: 'currency',
+              currency: product.currency ?? 'INR',
+            }).format(sellingPrice)}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">Price on request</p>
+        )}
+
+        {showMrp && mrp != null && (
+          <p className="text-sm text-muted-foreground">
+            MRP{' '}
+            {new Intl.NumberFormat('en-IN', {
+              style: 'currency',
+              currency: product.currency ?? 'INR',
+            }).format(mrp)}
+            {discount != null && discount > 0 && (
+              <span className="text-foreground"> ({discount}%)</span>
+            )}
           </p>
         )}
-        <Link href={ROUTES.product(slug)}>
-          <h3 className="mt-1 line-clamp-2 text-sm font-medium leading-snug hover:underline">
-            {displayName}
-          </h3>
-        </Link>
-        {'rating' in product && product.rating != null && (
-          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-            <Star className="h-3 w-3 fill-accent text-accent" />
-            <span>{product.rating.toFixed(1)}</span>
-          </div>
-        )}
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <ProductPriceDisplay
-            salePrice={product.salePrice}
-            listPrice={product.listPrice}
-            currency={product.currency}
-            discountPercent={product.discountPercent}
-            size="sm"
-            showOffer={false}
+
+        <div className="flex gap-2">
+          <AmazonAddToCartButton
+            onClick={handleAddToCart}
+            disabled={!purchasable}
+            className="mt-0 flex-1"
           />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 shrink-0"
-            onClick={() =>
-              addItem({
-                productId: product.productId,
-                productName: displayName,
-                brandName: product.brandName,
-                imageUrl,
-                quantity: 1,
-                unitPrice: product.salePrice ?? product.listPrice ?? 0,
-                listPrice: product.listPrice,
-                currency: product.currency,
-              })
-            }
-            aria-label="Add to cart"
-          >
-            <ShoppingBag className="h-4 w-4" />
-          </Button>
+          <AmazonWishlistButton product={product} imageUrl={imageUrl} className="mt-0 flex-1" />
         </div>
       </div>
     </article>

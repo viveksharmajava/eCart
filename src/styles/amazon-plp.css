@@ -1,0 +1,144 @@
+/* Amazon.in-inspired product listing theme (reference PLP) */
+:root {
+  --amazon-text: #0f1111;
+  --amazon-text-secondary: #565959;
+  --amazon-border: #d5d9d9;
+  --amazon-bg-muted: #f0f2f2;
+  --amazon-atc: #ffd814;
+  --amazon-atc-hover: #f7ca00;
+  --amazon-atc-active: #f0b800;
+  --amazon-atc-border: #fcd200;
+  --amazon-link: #007185;
+}
+
+.amazon-plp {
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--amazon-text);
+  -webkit-font-smoothing: antialiased;
+}
+.amazon-plp .amazon-results-heading {
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--amazon-text);
+}
+
+.amazon-plp .amazon-results-count {
+  font-size: 0.875rem;
+  color: var(--amazon-text-secondary);
+  line-height: 1.4;
+}
+
+.amazon-product-card {
+  background: #fff;
+  border: 1px solid var(--amazon-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.amazon-product-card:hover {
+  box-shadow: 0 2px 5px rgba(15, 17, 17, 0.08);
+}
+
+.amazon-product-card__image-wrap {
+  background: #fff;
+  padding: 0.5rem 0.75rem 0;
+  margin: -0.75rem -0.75rem 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.amazon-product-card__image {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.amazon-product-card__image img {
+  object-fit: contain !important;
+}
+
+.amazon-product-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-top: 0.625rem;
+  flex: 1;
+}
+
+.amazon-product-card__brand {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  color: var(--amazon-text);
+}
+
+.amazon-product-card__title {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  color: var(--amazon-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 0.125rem;
+}
+
+.amazon-product-card__title:hover {
+  color: var(--amazon-link);
+  text-decoration: underline;
+}
+
+.amazon-product-card__price-row {
+  display: flex;
+  align-items: flex-start;
+  line-height: 1.2;
+  color: var(--amazon-text);
+}
+
+.amazon-product-card__price-symbol {
+  font-size: 0.8125rem;
+  position: relative;
+  top: 0.125rem;
+  margin-right: 1px;
+}
+
+.amazon-product-card__price-whole {
+  font-size: 1.3125rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.amazon-product-card__price-fraction {
+  font-size: 0.8125rem;
+  position: relative;
+  top: 0.125rem;
+}
+
+.amazon-product-card__mrp-row {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: var(--amazon-text-secondary);
+}
+
+.amazon-product-card__mrp-strike {
+  text-decoration: line-through;
+}
+
+.amazon-product-card__discount {
+  color: var(--amazon-text);
+}
+
+.amazon-plp-grid {  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .amazon-plp-grid {
+    gap: 1.25rem;
+  }
+}
