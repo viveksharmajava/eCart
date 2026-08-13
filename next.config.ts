@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 
-const catalogBase = process.env.CATALOG_PROXY_TARGET ?? 'http://localhost:8080';
+const catalogBase = process.env.CATALOG_PROXY_TARGET ?? 'http://localhost:8085';
 const pricingBase = process.env.PRICING_PROXY_TARGET ?? 'http://localhost:8081';
 const partyBase = process.env.PARTY_PROXY_TARGET ?? 'http://localhost:8082';
 const ordersBase = process.env.ORDERS_PROXY_TARGET ?? 'http://localhost:8083';
@@ -19,10 +19,12 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
-      { protocol: 'http', hostname: 'localhost', port: '8080', pathname: '/catalog/product-images/**' },
-      { protocol: 'http', hostname: '127.0.0.1', port: '8080', pathname: '/catalog/product-images/**' },
-      { protocol: 'http', hostname: 'localhost', port: '8080', pathname: '/catalog/category-images/**' },
-      { protocol: 'http', hostname: '127.0.0.1', port: '8080', pathname: '/catalog/category-images/**' },
+      { protocol: 'http', hostname: 'localhost', port: '8085', pathname: '/catalog/product-images/**' },
+      { protocol: 'http', hostname: '127.0.0.1', port: '8085', pathname: '/catalog/product-images/**' },
+      { protocol: 'http', hostname: 'localhost', port: '8085', pathname: '/catalog/category-images/**' },
+      { protocol: 'http', hostname: '127.0.0.1', port: '8085', pathname: '/catalog/category-images/**' },
+      { protocol: 'http', hostname: 'localhost', port: '8085', pathname: '/catalog/catalog-images/**' },
+      { protocol: 'http', hostname: '127.0.0.1', port: '8085', pathname: '/catalog/catalog-images/**' },
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
     ],
   },

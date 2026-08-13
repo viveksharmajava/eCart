@@ -39,8 +39,10 @@ export function CatalogNavMenu({
             <Link
               href={catalog.href}
               className={cn(
-                'flex items-center gap-1 whitespace-nowrap text-sm font-semibold uppercase tracking-wide transition-colors',
-                isActive ? 'text-foreground' : 'text-foreground/80 hover:text-foreground',
+                'relative flex items-center gap-1 whitespace-nowrap text-sm font-semibold uppercase tracking-wide transition-colors',
+                'after:pointer-events-none after:absolute after:left-0 after:right-0 after:top-full after:mt-[15px] after:h-[2px] after:bg-[#2563eb] after:opacity-0 after:transition-opacity',
+                'hover:after:opacity-100',
+                isActive ? 'text-foreground after:opacity-100' : 'text-foreground/80 hover:text-foreground',
                 hasCategories && 'pr-0.5',
               )}
               aria-expanded={hasCategories ? isActive : undefined}

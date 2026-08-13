@@ -25,6 +25,7 @@ export interface User {
   email?: string;
   firstName?: string;
   lastName?: string;
+  mobile?: string;
   roles: string[];
   permissions: string[];
 }
@@ -43,6 +44,8 @@ export interface Address {
   landmark?: string;
   city: string;
   state: string;
+  /** ISO-style Indian state code (e.g. MH, KA). */
+  stateCode?: string;
   country: string;
   postalCode: string;
   isDefault: boolean;
@@ -53,6 +56,8 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   orderItemSeqId?: string;
+  statusId?: string;
+  cancelQuantity?: number;
 }
 
 export interface OrderSummary {

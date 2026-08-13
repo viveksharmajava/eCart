@@ -1,10 +1,6 @@
 import type { CartItem } from '@/types/commerce';
 import { STORE_CONFIG } from '@/constants';
 
-export const FREE_SHIPPING_THRESHOLD = 999;
-export const STANDARD_SHIPPING = 99;
-export const EXPRESS_SHIPPING = 199;
-
 export interface CartTotals {
   subtotal: number;
   couponDiscount: number;
@@ -16,17 +12,12 @@ export interface CartTotals {
 export function computeCartTotals(
   items: CartItem[],
   couponDiscount = 0,
-  shippingMethod: 'standard' | 'express' = 'standard',
 ): CartTotals {
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const discount = Math.min(couponDiscount, subtotal);
   const afterDiscount = Math.max(0, subtotal - discount);
-  const shipping =
-    afterDiscount >= FREE_SHIPPING_THRESHOLD
-      ? 0
-      : shippingMethod === 'express'
-        ? EXPRESS_SHIPPING
-        : STANDARD_SHIPPING;
+  // Shipping is not charged in storefront checkout (no hardcoded rates).
+  const shipping = 0;
   const currency = items[0]?.currency ?? STORE_CONFIG.defaultCurrency;
 
   return {

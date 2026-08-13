@@ -42,3 +42,21 @@ export async function getOrder(orderId: string): Promise<OrderSummary> {
   if (!res.ok) throw new Error(data.error ?? 'Failed to load order');
   return data;
 }
+
+export async function cancelOrder(
+  orderId: string,
+  payload: {
+    reason: string;
+    cancelAll?: boolean;
+    items?: Array<{ orderItemSeqId: string; cancelQuantity: number }>;
+  },
+): Promise<OrderSummary> {
+  const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}/cancel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? 'Failed to cancel order');
+  return data as OrderSummary;
+}

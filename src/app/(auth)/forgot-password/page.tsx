@@ -90,8 +90,8 @@ export default function ForgotPasswordPage() {
                 </p>
               ) : (
                 <p className="text-green-800">
-                  If you have a storefront account, check the party service console for the reset
-                  link (email is not sent in development).
+                  If an account exists for that email, check your inbox (and spam folder) for the
+                  reset link.
                 </p>
               )}
             </div>

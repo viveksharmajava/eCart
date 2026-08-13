@@ -26,10 +26,6 @@ export function SiteHeader({ catalogNav }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="bg-primary text-center text-xs font-medium tracking-wide text-primary-foreground sm:text-sm">
-        <p className="py-2">Free shipping on orders over ₹999 · New season drops live now</p>
-      </div>
-
       <div
         className="relative"
         onMouseLeave={() => setActiveCatalog(null)}
@@ -67,8 +63,12 @@ export function SiteHeader({ catalogNav }: SiteHeaderProps) {
             </div>
 
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-              <Link href={ROUTES.wishlist} aria-label="Wishlist" className="relative hidden sm:inline-flex">
-                <Button variant="ghost" size="icon">
+              <Link
+                href={ROUTES.wishlist}
+                aria-label="Your Wishlist"
+                className="relative hidden cursor-pointer sm:inline-flex"
+              >
+                <Button variant="ghost" size="icon" title="Your Wishlist" className="cursor-pointer">
                   <Heart />
                   {wishlistCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">
@@ -77,13 +77,22 @@ export function SiteHeader({ catalogNav }: SiteHeaderProps) {
                   )}
                 </Button>
               </Link>
-              <Link href={ROUTES.account} aria-label="Account" className="hidden sm:inline-flex">
-                <Button variant="ghost" size="icon" title={isAuthenticated ? user?.firstName ?? user?.username : 'Account'}>
+              <Link
+                href={ROUTES.account}
+                aria-label="Account"
+                className="hidden cursor-pointer sm:inline-flex"
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={isAuthenticated ? user?.firstName ?? user?.username : 'Account'}
+                  className="cursor-pointer"
+                >
                   <User />
                 </Button>
               </Link>
-              <Link href={ROUTES.cart} aria-label="Cart" className="relative">
-                <Button variant="ghost" size="icon">
+              <Link href={ROUTES.cart} aria-label="Cart items" className="relative cursor-pointer">
+                <Button variant="ghost" size="icon" title="Cart items" className="cursor-pointer">
                   <ShoppingBag />
                   {itemCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">

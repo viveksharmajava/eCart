@@ -30,6 +30,7 @@ export interface ApiCategoryProductMemberDto {
   productId?: string;
   productName?: string;
   internalName?: string;
+  brandName?: string;
 }
 
 export function mapCategoryNode(dto: ApiProductCategoryDto): CategoryNode | null {
@@ -76,6 +77,7 @@ export function mapProductMemberToSummary(dto: ApiCategoryProductMemberDto): Pro
     productId,
     productName: dto.productName,
     internalName: dto.internalName,
+    brandName: dto.brandName,
   };
 }
 

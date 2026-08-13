@@ -28,7 +28,7 @@ function resolveServerServiceOrigin(path: string): string {
     return stripTrailingSlash(
       process.env.CATALOG_API_BASE ??
         process.env.CATALOG_PROXY_TARGET ??
-        'http://localhost:8080',
+        'http://localhost:8085',
     );
   }
   if (path.startsWith('/pricing')) {
@@ -120,7 +120,12 @@ export async function httpClient<T>(path: string, options: RequestOptions = {}):
     let message = `Request failed (${response.status})`;
     try {
       const errBody = await response.json();
-      if (errBody?.error) message = String(errBody.error);
+      // Spring Boot often sets error="Forbidden" and message=<detail>
+      if (errBody?.message && String(errBody.message) !== String(errBody.status)) {
+        message = String(errBody.message);
+      } else if (errBody?.error) {
+        message = String(errBody.error);
+      }
     } catch {
       // ignore
     }

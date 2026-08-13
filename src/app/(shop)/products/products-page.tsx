@@ -79,7 +79,7 @@ function ProductListingContent() {
                 displayTitle
               )}
             </h1>
-            <p className="amazon-results-count mt-1">
+            <p className="amazon-results-count mt-0.5">
               {total} {total === 1 ? 'result' : 'results'}
             </p>
           </div>

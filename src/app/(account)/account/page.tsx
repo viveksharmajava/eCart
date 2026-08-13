@@ -24,8 +24,22 @@ export default function AccountDashboardPage() {
       <section className="rounded-lg border p-6">
         <h2 className="font-semibold uppercase tracking-wide">Profile</h2>
         <dl className="mt-4 space-y-2 text-sm">
-          <div><dt className="text-muted-foreground">Email</dt><dd>{user?.email ?? user?.username}</dd></div>
-          <div><dt className="text-muted-foreground">Party ID</dt><dd>{user?.partyId ?? '—'}</dd></div>
+          <div>
+            <dt className="text-muted-foreground">Name</dt>
+            <dd>
+              {user?.firstName || user?.lastName
+                ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+                : '—'}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Email</dt>
+            <dd>{user?.email ?? user?.username ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Mobile / Phone</dt>
+            <dd>{user?.mobile ?? '—'}</dd>
+          </div>
         </dl>
         <Link href={ROUTES.accountProfile} className="mt-4 inline-block text-sm font-medium underline">
           Edit profile

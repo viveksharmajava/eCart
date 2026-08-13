@@ -13,6 +13,7 @@ interface LoginResponse {
   firstName?: string;
   lastName?: string;
   email?: string;
+  mobile?: string;
   roles?: string[];
   authHeader: string;
 }
@@ -26,7 +27,10 @@ export async function POST(request: Request) {
     });
 
     const session = sessionFromLogin(login);
-    const response = NextResponse.json({ user: sessionToUser(session) });
+    const response = NextResponse.json({
+      user: sessionToUser(session),
+      authHeader: session.authHeader,
+    });
     response.cookies.set(SESSION_COOKIE, serializeSessionCookie(session), {
       httpOnly: true,
       sameSite: 'lax',

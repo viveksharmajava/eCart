@@ -10,25 +10,29 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { MOBILE_ERROR_MESSAGE, MOBILE_PATTERN, sanitizeMobileInput } from '@/lib/mobile';
+import { AuthOrDivider, GoogleLoginButton } from '@/components/auth/google-login-button';
 
 const schema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Valid email required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  mobile: z.string().min(10, 'Valid mobile number required'),
+  mobile: z.string().regex(MOBILE_PATTERN, MOBILE_ERROR_MESSAGE),
 });
 
 type FormData = z.infer<typeof schema>;
 
 export default function SignupPage() {
   const router = useRouter();
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
@@ -45,6 +49,19 @@ export default function SignupPage() {
       router.push(ROUTES.account);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
+    }
+  }
+
+  async function handleGoogleCredential(idToken: string) {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle(idToken);
+      router.push(ROUTES.account);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google login failed');
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -75,7 +92,19 @@ export default function SignupPage() {
           </div>
           <div>
             <label className="text-sm font-medium" htmlFor="mobile">Mobile</label>
-            <Input id="mobile" className="mt-1" {...register('mobile')} />
+            <Input
+              id="mobile"
+              className="mt-1"
+              inputMode="numeric"
+              autoComplete="tel"
+              maxLength={10}
+              placeholder="10-digit mobile number"
+              {...register('mobile')}
+              onChange={(e) => {
+                const sanitized = sanitizeMobileInput(e.target.value);
+                setValue('mobile', sanitized, { shouldValidate: true });
+              }}
+            />
             {errors.mobile && <p className="mt-1 text-xs text-destructive">{errors.mobile.message}</p>}
           </div>
           <div>
@@ -83,14 +112,23 @@ export default function SignupPage() {
             <Input id="password" type="password" className="mt-1" {...register('password')} />
             {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
           </div>
-          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || googleLoading}>
             {isSubmitting ? 'Creating…' : 'Create Account'}
           </Button>
         </form>
 
+        <AuthOrDivider />
+
+        <GoogleLoginButton
+          onCredential={handleGoogleCredential}
+          disabled={isSubmitting || googleLoading}
+        />
+
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href={ROUTES.login} className="font-semibold hover:underline">Sign in</Link>
+          <Link href={ROUTES.login} className="font-semibold hover:underline">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>

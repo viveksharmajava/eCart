@@ -7,12 +7,18 @@ interface CartStore {
   items: CartItem[];
   couponCode?: string;
   couponDiscount: number;
+  /** Product IDs flagged out of stock during checkout validation. */
+  outOfStockProductIds: string[];
   addItem: (item: CartItem) => void;
   removeItem: (productId: string, variantId?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
+  /** Replace local cart contents (used when hydrating from party service). */
+  replaceItems: (items: CartItem[]) => void;
   clearCart: () => void;
   applyCoupon: (code: string, discount: number) => void;
   removeCoupon: () => void;
+  setOutOfStockProductIds: (productIds: string[]) => void;
+  clearOutOfStockProductIds: () => void;
   itemCount: () => number;
   subtotal: () => number;
   total: () => number;
@@ -27,6 +33,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       couponDiscount: 0,
+      outOfStockProductIds: [],
 
       addItem: (item) => {
         set((state) => {
@@ -41,7 +48,12 @@ export const useCartStore = create<CartStore>()(
                   : i,
               )
             : [...state.items, item];
-          return { items };
+          return {
+            items,
+            outOfStockProductIds: (state.outOfStockProductIds ?? []).filter(
+              (id) => id !== item.productId,
+            ),
+          };
         });
         trackEvent({
           name: 'add_to_cart',
@@ -53,9 +65,16 @@ export const useCartStore = create<CartStore>()(
 
       removeItem: (productId, variantId) => {
         const key = itemKey(productId, variantId);
-        set((state) => ({
-          items: state.items.filter((i) => itemKey(i.productId, i.variantId) !== key),
-        }));
+        set((state) => {
+          const items = state.items.filter((i) => itemKey(i.productId, i.variantId) !== key);
+          const stillInCart = items.some((i) => i.productId === productId);
+          return {
+            items,
+            outOfStockProductIds: stillInCart
+              ? state.outOfStockProductIds ?? []
+              : (state.outOfStockProductIds ?? []).filter((id) => id !== productId),
+          };
+        });
       },
 
       updateQuantity: (productId, quantity, variantId) => {
@@ -71,11 +90,30 @@ export const useCartStore = create<CartStore>()(
         }));
       },
 
-      clearCart: () => set({ items: [], couponCode: undefined, couponDiscount: 0 }),
+      replaceItems: (items) =>
+        set({
+          items: [...items],
+          couponCode: undefined,
+          couponDiscount: 0,
+          outOfStockProductIds: [],
+        }),
+
+      clearCart: () =>
+        set({
+          items: [],
+          couponCode: undefined,
+          couponDiscount: 0,
+          outOfStockProductIds: [],
+        }),
 
       applyCoupon: (code, discount) => set({ couponCode: code, couponDiscount: discount }),
 
       removeCoupon: () => set({ couponCode: undefined, couponDiscount: 0 }),
+
+      setOutOfStockProductIds: (productIds) =>
+        set({ outOfStockProductIds: [...new Set(productIds.filter(Boolean))] }),
+
+      clearOutOfStockProductIds: () => set({ outOfStockProductIds: [] }),
 
       itemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 
@@ -84,6 +122,13 @@ export const useCartStore = create<CartStore>()(
 
       total: () => Math.max(0, get().subtotal() - get().couponDiscount),
     }),
-    { name: 'playpro-cart' },
+    {
+      name: 'playpro-cart',
+      partialize: (state) => ({
+        items: state.items,
+        couponCode: state.couponCode,
+        couponDiscount: state.couponDiscount,
+      }),
+    },
   ),
 );

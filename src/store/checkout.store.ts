@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import type { Address } from '@/types/commerce';
 
-export type CheckoutStep = 'address' | 'delivery' | 'payment' | 'review';
+export type CheckoutStep = 'address' | 'payment' | 'review';
 
 interface CheckoutStore {
   step: CheckoutStep;
   shippingAddress: Address | null;
-  shippingMethod: 'standard' | 'express';
-  paymentMethod: 'cod' | 'razorpay' | 'stripe';
+  /** Catalog payment method id (e.g. PSM-...). */
+  paymentMethodId: string | null;
   createAccount: boolean;
   guestEmail: string;
   guestFirstName: string;
@@ -15,8 +15,8 @@ interface CheckoutStore {
   guestMobile: string;
   setStep: (step: CheckoutStep) => void;
   setShippingAddress: (address: Address | null) => void;
-  setShippingMethod: (method: 'standard' | 'express') => void;
-  setPaymentMethod: (method: 'cod' | 'razorpay' | 'stripe') => void;
+  setPaymentMethodId: (paymentMethodId: string | null) => void;
+  setPaymentMethod: (paymentMethodId: string | null) => void;
   setGuestDetails: (details: Partial<Pick<CheckoutStore, 'guestEmail' | 'guestFirstName' | 'guestLastName' | 'guestMobile' | 'createAccount'>>) => void;
   reset: () => void;
 }
@@ -24,8 +24,7 @@ interface CheckoutStore {
 const initialState = {
   step: 'address' as CheckoutStep,
   shippingAddress: null as Address | null,
-  shippingMethod: 'standard' as const,
-  paymentMethod: 'cod' as const,
+  paymentMethodId: null as string | null,
   createAccount: false,
   guestEmail: '',
   guestFirstName: '',
@@ -37,8 +36,8 @@ export const useCheckoutStore = create<CheckoutStore>((set) => ({
   ...initialState,
   setStep: (step) => set({ step }),
   setShippingAddress: (shippingAddress) => set({ shippingAddress }),
-  setShippingMethod: (shippingMethod) => set({ shippingMethod }),
-  setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
+  setPaymentMethodId: (paymentMethodId) => set({ paymentMethodId }),
+  setPaymentMethod: (paymentMethodId) => set({ paymentMethodId }),
   setGuestDetails: (details) => set((state) => ({ ...state, ...details })),
   reset: () => set(initialState),
 }));

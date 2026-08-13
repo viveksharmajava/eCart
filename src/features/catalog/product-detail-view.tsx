@@ -44,6 +44,8 @@ import { ProductRecommendations } from '@/components/product/product-recommendat
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { cn } from '@/lib/utils';
 
 
@@ -107,6 +109,8 @@ export function ProductDetailView({
   );
 
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+
+  const router = useRouter();
 
   const addItem = useCartStore((s) => s.addItem);
 
@@ -226,6 +230,8 @@ export function ProductDetailView({
       attributes: Object.keys(selectedAttributes).length > 0 ? selectedAttributes : undefined,
 
     });
+
+    router.push(ROUTES.cartWithAdded(displayName));
 
   }
 

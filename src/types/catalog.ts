@@ -61,6 +61,8 @@ export interface ProdCatalogSummary {
   prodCatalogId: string;
   catalogName?: string;
   useQuickAdd?: string;
+  /** Catalog Image (Header Logo) public URL from catalog service. */
+  headerLogo?: string;
   isCartEnabled?: boolean;
 }
 

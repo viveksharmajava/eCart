@@ -80,7 +80,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
-      <HeroCarousel slides={heroSlides} />
+      {heroSlides.length > 0 && <HeroCarousel slides={heroSlides} />}
 
       <Suspense fallback={<div className="container-store py-12"><ProductSectionSkeleton /></div>}>
         <BestSellersSection />

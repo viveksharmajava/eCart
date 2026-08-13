@@ -20,7 +20,7 @@ export default function HomeError({
           : 'The storefront could not load catalog data. Make sure the catalog service is running on port '}
         {!error.message?.includes('Maximum update depth') && (
           <>
-            <strong>8080</strong> and pricing on <strong>8081</strong>.
+            <strong>8085</strong> and pricing on <strong>8081</strong>.
           </>
         )}
       </p>

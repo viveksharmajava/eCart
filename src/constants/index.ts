@@ -7,6 +7,9 @@ export const ROUTES = {
   product: (slug: string) => `/products/${slug}`,
   search: '/search',
   cart: '/cart',
+  /** Cart page with post–add-to-cart confirmation for the given item name. */
+  cartWithAdded: (itemName: string) =>
+    `/cart?added=${encodeURIComponent(itemName)}`,
   checkout: '/checkout',
   checkoutSuccess: '/checkout/success',
   wishlist: '/wishlist',
@@ -19,6 +22,7 @@ export const ROUTES = {
   accountOrders: '/account/orders',
   accountAddresses: '/account/addresses',
   accountProfile: '/account/profile',
+  accountResetPassword: '/account/reset-password',
   help: '/help',
   contact: '/contact',
   about: '/pages/about-us',

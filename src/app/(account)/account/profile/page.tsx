@@ -8,10 +8,7 @@ export default function AccountProfilePage() {
 
   return (
     <section className="max-w-lg space-y-4 rounded-lg border p-6">
-      <h2 className="font-semibold uppercase tracking-wide">Profile</h2>
-      <p className="text-sm text-muted-foreground">
-        Profile updates sync with the party service in a future release. Your session details are shown below.
-      </p>
+      <h2 className="font-semibold uppercase tracking-wide">Edit profile</h2>
       <div>
         <label className="text-sm font-medium">First name</label>
         <Input className="mt-1" value={user?.firstName ?? ''} readOnly />
@@ -23,6 +20,10 @@ export default function AccountProfilePage() {
       <div>
         <label className="text-sm font-medium">Email</label>
         <Input className="mt-1" value={user?.email ?? user?.username ?? ''} readOnly />
+      </div>
+      <div>
+        <label className="text-sm font-medium">Mobile / Phone</label>
+        <Input className="mt-1" value={user?.mobile ?? '—'} readOnly />
       </div>
     </section>
   );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ROUTES } from '@/constants';
+import { formatOrderStatus } from '@/lib/order-status';
 import { formatCurrency } from '@/lib/utils';
 import { findOrders } from '@/services/orders.client';
 import type { OrderSummary } from '@/types/commerce';
@@ -37,7 +38,7 @@ export default function AccountOrdersPage() {
                 <Link href={`${ROUTES.accountOrders}/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">
                   {order.orderId}
                 </Link>
-                <p className="text-muted-foreground">{order.statusId ?? 'ORDER_CREATED'}</p>
+                <p className="text-muted-foreground">{formatOrderStatus(order.statusId)}</p>
               </div>
               <div className="text-right">
                 <p className="font-semibold">{formatCurrency(Number(order.grandTotal ?? 0), order.currencyUom)}</p>

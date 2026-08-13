@@ -25,20 +25,20 @@ export async function SiteFooter() {
 
   return (
     <footer className="border-t bg-secondary/50">
-      <div className="container-store py-12 lg:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="container-store pt-5 pb-8 lg:pt-6 lg:pb-10">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div>
             <p className="text-lg font-black uppercase tracking-tighter">{APP_NAME}</p>
-            <p className="mt-3 text-sm text-muted-foreground">
+            <p className="mt-1.5 text-sm text-muted-foreground">
               Performance gear for athletes who demand more. Engineered for every game.
             </p>
           </div>
           {Object.entries(footerLinks).map(([section, links]) => (
             <div key={section}>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-xs font-bold uppercase tracking-widest text-foreground">
                 {section}
               </p>
-              <ul className="mt-4 space-y-2">
+              <ul className="mt-2 space-y-1.5">
                 {links.map((link) => (
                   <li key={link.href}>
                     <Link
@@ -53,9 +53,9 @@ export async function SiteFooter() {
             </div>
           ))}
         </div>
-        <Separator className="my-8" />
+        <Separator className="my-5" />
         <p className="text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
+          © {new Date().getFullYear()} Play Pro Sports. All rights reserved.
         </p>
       </div>
     </footer>

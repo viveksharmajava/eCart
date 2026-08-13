@@ -61,3 +61,17 @@ const providers: Record<PaymentProvider['id'], PaymentProvider> = {
 export function getPaymentProvider(id: PaymentProvider['id']): PaymentProvider {
   return providers[id];
 }
+
+/** Map catalog gateway_provider to a mock checkout provider. */
+export function resolvePaymentProviderId(
+  gatewayProvider?: string | null,
+): PaymentProvider['id'] | null {
+  const key = (gatewayProvider || '').trim().toUpperCase();
+  if (!key) return null;
+  if (key === 'STRIPE') return 'stripe';
+  if (key === 'PAYPAL') return 'paypal';
+  if (key === 'RAZORPAY' || key === 'PAYU' || key === 'PHONEPE' || key === 'CUSTOM') {
+    return 'razorpay';
+  }
+  return 'razorpay';
+}

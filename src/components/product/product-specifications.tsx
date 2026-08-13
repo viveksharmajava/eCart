@@ -25,9 +25,13 @@ export function ProductSpecifications({ product }: ProductSpecificationsProps) {
       <h2 className="text-xl font-black uppercase tracking-tight">Specifications</h2>
       <dl className="mt-4 divide-y rounded-lg border">
         {specs.map((spec) => (
-          <div key={spec.label} className="flex justify-between gap-4 px-4 py-3 text-sm">
-            <dt className="font-medium text-muted-foreground">{spec.label}</dt>
-            <dd className="text-right">{spec.value}</dd>
+          <div
+            key={spec.label}
+            className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-0 px-0 text-sm"
+          >
+            <dt className="px-4 py-3 font-medium text-muted-foreground">{spec.label}</dt>
+            <div className="w-px self-stretch bg-border" aria-hidden="true" />
+            <dd className="px-4 py-3 text-left">{spec.value}</dd>
           </div>
         ))}
       </dl>

@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import { STORE_CONFIG } from '@/constants';
 import {
+  findCartEnabledProdCatalogs,
   findProducts,
   getCatalogCategories,
   getCategoryProducts,
@@ -10,46 +11,64 @@ import {
 } from '@/services/catalog.service';
 import { getProductPrices } from '@/services/pricing.service';
 import { pickPrimaryProductImageUrl } from '@/lib/product-images';
+import { resolveCatalogHeaderImageUrl } from '@/lib/catalog-header-images';
+import { productsCatalogHref } from '@/lib/category-links';
+import { getStorefrontSettings } from '@/features/store/storefront-settings';
 import { attachPrice, type PricedProduct } from '@/utils/pricing';
-import type { CategoryNode, HeroSlide, ProductSummary } from '@/types/catalog';
-
-export const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 'hero-1',
-    title: 'Own The Court',
-    subtitle: 'Pro-grade badminton gear engineered for champions.',
-    ctaLabel: 'Shop Badminton',
-    ctaHref: '/products?category=badminton',
-    imageUrl: '/images/hero/hero-badminton.svg',
-    imageAlt: 'Badminton player in action',
-  },
-  {
-    id: 'hero-2',
-    title: 'Play Bold',
-    subtitle: 'Cricket bats, pads and kits — built for match day.',
-    ctaLabel: 'Shop Cricket',
-    ctaHref: '/products?category=cricket',
-    imageUrl: '/images/hero/hero-cricket.svg',
-    imageAlt: 'Cricket batsman',
-  },
-  {
-    id: 'hero-3',
-    title: 'Run Faster',
-    subtitle: 'Performance sports shoes for every surface.',
-    ctaLabel: 'Shop Shoes',
-    ctaHref: '/products?category=sports-shoes',
-    imageUrl: '/images/hero/hero-shoes.svg',
-    imageAlt: 'Red running shoe',
-  },
-];
+import type { CategoryNode, HeroSlide, ProductSummary, ProdCatalogSummary } from '@/types/catalog';
 
 const EMPTY_HOME_DATA = {
-  heroSlides: HERO_SLIDES,
+  heroSlides: [] as HeroSlide[],
   bestSellers: [] as Array<PricedProduct & { imageUrl?: string }>,
   trending: [] as Array<PricedProduct & { imageUrl?: string }>,
   categories: [] as CategoryNode[],
   catalogCategories: [] as Awaited<ReturnType<typeof getCatalogCategories>>,
 };
+
+function pickStorefrontCatalogs(
+  allCatalogs: ProdCatalogSummary[],
+  allowedIds: string[],
+): ProdCatalogSummary[] {
+  if (allowedIds.length === 0) return allCatalogs;
+  const idSet = new Set(allowedIds);
+  const filtered = allCatalogs.filter((c) => idSet.has(c.prodCatalogId));
+  if (filtered.length === 0) return allCatalogs;
+  return allowedIds
+    .map((id) => filtered.find((c) => c.prodCatalogId === id))
+    .filter((c): c is ProdCatalogSummary => Boolean(c));
+}
+
+async function loadHeroSlidesFromCatalogs(): Promise<HeroSlide[]> {
+  try {
+    const [storeSettings, allCatalogs] = await Promise.all([
+      getStorefrontSettings(),
+      findCartEnabledProdCatalogs(24),
+    ]);
+
+    const catalogs = pickStorefrontCatalogs(allCatalogs, storeSettings.catalogIds ?? []);
+
+    return catalogs
+      .map((catalog) => {
+        const imageUrl = resolveCatalogHeaderImageUrl(catalog.prodCatalogId, catalog.headerLogo);
+        if (!imageUrl) return null;
+
+        const title = catalog.catalogName?.trim() || catalog.prodCatalogId;
+        return {
+          id: catalog.prodCatalogId,
+          title,
+          subtitle: `Explore the latest from ${title}.`,
+          ctaLabel: `Shop ${title}`,
+          ctaHref: productsCatalogHref(catalog.prodCatalogId, title),
+          imageUrl,
+          imageAlt: `${title} catalog`,
+        } satisfies HeroSlide;
+      })
+      .filter((slide): slide is HeroSlide => slide != null);
+  } catch (error) {
+    console.error('[home] Failed to load catalog hero slides', error);
+    return [];
+  }
+}
 
 async function enrichProducts(
   products: ProductSummary[],
@@ -98,24 +117,24 @@ async function loadSectionProducts(
 
 export const getHomePageData = cache(async function getHomePageData() {
   try {
-    const [bestSellers, trending, categoryTree, catalogCategories] = await Promise.all([
-      loadSectionProducts(STORE_CONFIG.bestSellerType, STORE_CONFIG.bestSellerFallback),
-      loadSectionProducts(STORE_CONFIG.trendingType, STORE_CONFIG.trendingFallback),
-      getCategoryTree().catch(() => [] as CategoryNode[]),
-      getCatalogCategories().catch(() => []),
-    ]);
-
-    const mappedCategories = categoryTree;
+    const [heroSlides, bestSellers, trending, categoryTree, catalogCategories] =
+      await Promise.all([
+        loadHeroSlidesFromCatalogs(),
+        loadSectionProducts(STORE_CONFIG.bestSellerType, STORE_CONFIG.bestSellerFallback),
+        loadSectionProducts(STORE_CONFIG.trendingType, STORE_CONFIG.trendingFallback),
+        getCategoryTree().catch(() => [] as CategoryNode[]),
+        getCatalogCategories().catch(() => []),
+      ]);
 
     return {
-      heroSlides: HERO_SLIDES,
+      heroSlides,
       bestSellers,
       trending,
-      categories: mappedCategories,
+      categories: categoryTree,
       catalogCategories,
     };
   } catch (error) {
-    console.error('[home] getHomePageData failed — is catalog running on port 8080?', error);
+    console.error('[home] getHomePageData failed — is catalog running on port 8085?', error);
     return EMPTY_HOME_DATA;
   }
 });

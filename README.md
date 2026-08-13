@@ -9,7 +9,7 @@ Design inspired by Nike.com and one8.com — bold, sport-first, mobile-responsiv
 - **Node.js 20.19+** (or 22 LTS) — [https://nodejs.org](https://nodejs.org)
 - During install on Windows, enable **“Add to PATH”**
 - Running backend services:
-  - catalog → `http://localhost:8080`
+  - catalog → `http://localhost:8085`
   - pricing → `http://localhost:8081`
   - party → `http://localhost:8082`
   - orders → `http://localhost:8083`

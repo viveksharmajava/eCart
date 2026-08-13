@@ -18,7 +18,7 @@ flowchart TB
   end
 
   subgraph backend [Existing Microservices]
-    CAT[catalog :8080]
+    CAT[catalog :8085]
     PRC[pricing :8081]
     PRT[party :8082]
     ORD[orders :8083]

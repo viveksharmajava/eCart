@@ -9,6 +9,7 @@ export interface SessionPayload {
   firstName?: string;
   lastName?: string;
   email?: string;
+  mobile?: string;
   roles: string[];
 }
 
@@ -31,6 +32,7 @@ export function sessionFromLogin(login: {
   firstName?: string;
   lastName?: string;
   email?: string;
+  mobile?: string;
   roles?: string[];
   authHeader: string;
 }): SessionPayload {
@@ -41,6 +43,7 @@ export function sessionFromLogin(login: {
     firstName: login.firstName,
     lastName: login.lastName,
     email: login.email ?? login.username,
+    mobile: login.mobile,
     roles: login.roles ?? ['CUSTOMER'],
   };
 }
@@ -52,6 +55,7 @@ export function sessionToUser(session: SessionPayload): User {
     email: session.email,
     firstName: session.firstName,
     lastName: session.lastName,
+    mobile: session.mobile,
     roles: session.roles,
     permissions: [],
   };

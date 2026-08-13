@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { PricedProduct } from '@/utils/pricing';
 import type { EnrichedListProduct } from '@/types/filters';
 import { ROUTES } from '@/constants';
@@ -46,6 +47,7 @@ export function ProductCard({
   priority,
   variant = 'default',
 }: ProductCardProps) {
+  const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
   if (!product.productId) return null;
 
@@ -73,6 +75,7 @@ export function ProductCard({
       listPrice: product.listPrice,
       currency: product.currency,
     });
+    router.push(ROUTES.cartWithAdded(displayName));
   }
 
   const wishlistOnImage = (

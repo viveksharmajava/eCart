@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { Plus, ShoppingBag } from 'lucide-react';
 import { SectionHeading } from '@/components/home/section-heading';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export function FrequentlyBoughtTogether({
   productId,
   currentProduct,
 }: FrequentlyBoughtTogetherProps) {
+  const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
   const { data, isLoading } = useQuery({
     queryKey: ['fbt', productId],
@@ -42,10 +44,13 @@ export function FrequentlyBoughtTogether({
     allItems.reduce((sum, p) => sum + (p.salePrice ?? 0), 0);
 
   function addBundleToCart() {
-    allItems.forEach((p) => {
+    const names = allItems.map(
+      (p) => p.productName ?? p.internalName ?? p.productId,
+    );
+    allItems.forEach((p, index) => {
       addItem({
         productId: p.productId,
-        productName: p.productName ?? p.internalName ?? p.productId,
+        productName: names[index],
         brandName: p.brandName,
         imageUrl: p.imageUrl,
         quantity: 1,
@@ -53,6 +58,7 @@ export function FrequentlyBoughtTogether({
         currency: p.currency,
       });
     });
+    router.push(ROUTES.cartWithAdded(names.join(', ')));
   }
 
   return (
