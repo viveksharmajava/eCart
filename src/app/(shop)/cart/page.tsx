@@ -8,7 +8,7 @@ import { Suspense, useState } from 'react';
 import { ROUTES } from '@/constants';
 import { applyCouponCode, computeCartTotals } from '@/lib/commerce';
 import { useCartStore } from '@/store/cart.store';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, productSlug } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -106,7 +106,10 @@ function CartPageContent() {
                       This item is currently out of stock
                     </p>
                   )}
-                  <Link href={ROUTES.product(item.productId)} className="font-medium hover:underline">
+                  <Link
+                    href={ROUTES.product(productSlug(item.productId, item.productName))}
+                    className="font-medium hover:underline"
+                  >
                     {item.productName}
                   </Link>
                   {item.brandName && (

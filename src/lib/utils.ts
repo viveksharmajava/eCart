@@ -7,10 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(
   amount: number,
-  currency = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? 'INR',
+  currency?: string | null,
   locale = 'en-IN',
 ): string {
-  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount);
+  const code =
+    currency && /^[A-Za-z]{3}$/.test(currency.trim())
+      ? currency.trim().toUpperCase()
+      : (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? 'INR');
+  const value = Number.isFinite(amount) ? amount : 0;
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: code }).format(value);
 }
 
 export function slugify(text?: string | null): string {
@@ -26,7 +31,8 @@ export function slugify(text?: string | null): string {
 export function productSlug(productId?: string | null, name?: string): string {
   const id = productId?.trim();
   if (!id) return 'product';
-  const encodedId = encodeURIComponent(id.toLowerCase());
+  // Preserve original productId case — catalog IDs are case-sensitive (e.g. s-10 ≠ S-10).
+  const encodedId = encodeURIComponent(id);
   if (name) {
     const nameSlug = slugify(name);
     return nameSlug ? `${nameSlug}--${encodedId}` : encodedId;
@@ -36,19 +42,20 @@ export function productSlug(productId?: string | null, name?: string): string {
 
 /**
  * Extracts catalog product ID from a URL slug.
- * New format: {name-slug}--{encoded-product-id}
- * Legacy format: {name-slug}-{id} (still supported for older links)
+ * Preferred format: {name-slug}--{encoded-product-id}
+ * Also supports a bare product id (e.g. /products/s-10) and legacy PROD-… links.
  */
 export function parseProductSlug(slug: string): string {
   const decoded = decodeURIComponent(slug.trim());
+  if (!decoded) return '';
 
   const sepIndex = decoded.indexOf('--');
   if (sepIndex >= 0) {
     const idPart = decoded.slice(sepIndex + 2);
     try {
-      return decodeURIComponent(idPart).toUpperCase();
+      return decodeURIComponent(idPart);
     } catch {
-      return idPart.toUpperCase();
+      return idPart;
     }
   }
 
@@ -59,16 +66,16 @@ function parseLegacyProductSlug(slug: string): string {
   const lower = slug.toLowerCase();
   const prodIdx = lower.lastIndexOf('prod-');
   if (prodIdx >= 0) {
-    return slug.slice(prodIdx).toUpperCase();
+    return slug.slice(prodIdx);
   }
 
-  const parts = slug.split('-');
-  const last = parts[parts.length - 1];
-  if (last && /^[a-z0-9]+$/i.test(last)) {
-    return last.toUpperCase();
+  // Bare product id in the path (cart links, short ids like s-10, sg-100-5-red).
+  // Do not take only the last hyphen segment — that breaks ids that contain '-'.
+  if (!slug.includes('--') && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(slug)) {
+    return slug;
   }
 
-  return slug.toUpperCase();
+  return slug;
 }
 
 export function debounce<T extends (...args: Parameters<T>) => void>(fn: T, ms: number) {

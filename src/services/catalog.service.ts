@@ -8,6 +8,7 @@ import type {
   ProductImageInfo,
   ProductSearchRequest,
   ProductSummary,
+  ProductVariantConfig,
 } from '@/types/catalog';
 import { getServiceAuthHeader, httpClient } from './http.client';
 import {
@@ -59,6 +60,19 @@ export async function getProductVariants(productId: string): Promise<ProductSumm
   return httpClient(`/catalog/products/${encodeURIComponent(productId)}/variants`, {
     authHeader: AUTH(),
   });
+}
+
+export async function getProductVariantConfig(
+  productId: string,
+  productStoreId: string = STORE_CONFIG.productStoreId,
+): Promise<ProductVariantConfig> {
+  const params = new URLSearchParams();
+  if (productStoreId) params.set('productStoreId', productStoreId);
+  const qs = params.toString();
+  return httpClient(
+    `/catalog/products/${encodeURIComponent(productId)}/variant-config${qs ? `?${qs}` : ''}`,
+    { authHeader: AUTH() },
+  );
 }
 
 export async function getCategoryTree(

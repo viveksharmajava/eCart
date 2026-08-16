@@ -73,7 +73,7 @@ export function ProductCard({
       quantity: 1,
       unitPrice: product.salePrice ?? product.listPrice ?? 0,
       listPrice: product.listPrice,
-      currency: product.currency,
+      currency: product.currency ?? 'INR',
     });
     router.push(ROUTES.cartWithAdded(displayName));
   }

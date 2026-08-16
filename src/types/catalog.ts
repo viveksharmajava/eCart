@@ -26,6 +26,41 @@ export interface ProductAttribute {
 export interface ProductDetail extends ProductSummary {
   longDescription?: string;
   attributes?: ProductAttribute[];
+  virtualProduct?: boolean;
+  variant?: boolean;
+}
+
+export interface ProductVariantConfigValue {
+  variantValueId: string;
+  value: string;
+  abbreviation?: string;
+  sequenceNum?: number;
+  enabled?: boolean;
+  selected?: boolean;
+}
+
+export interface ProductVariantConfigType {
+  variantTypeId: string;
+  name: string;
+  code?: string;
+  sequenceNum?: number;
+  values?: ProductVariantConfigValue[];
+  selectedValueIds?: string[];
+}
+
+export interface ProductVariantGenerated {
+  productId: string;
+  productName?: string;
+  selections?: Record<string, string>;
+  existing?: boolean;
+}
+
+export interface ProductVariantConfig {
+  productId: string;
+  productStoreId?: string;
+  virtualProduct?: boolean;
+  types?: ProductVariantConfigType[];
+  generatedVariants?: ProductVariantGenerated[];
 }
 
 /** Matches catalog ProductImageInfoDto from GET /catalog/products/{id}/images */

@@ -100,7 +100,37 @@ export function attachPrice(product: ProductSummary, prices: ProductPrice[]): Pr
     ...product,
     listPrice: mrp,
     salePrice,
-    currency: saleRow?.currencyUomId ?? mrpRow?.currencyUomId,
+    currency: saleRow?.currencyUomId ?? mrpRow?.currencyUomId ?? 'INR',
+    discountPercent: discountPercent && discountPercent > 0 ? discountPercent : undefined,
+  };
+}
+
+/**
+ * Child variant price inherits from the virtual parent when the child has no
+ * DEFAULT_PRICE / LIST_PRICE (and optionally MRP) of its own.
+ */
+export function attachPriceWithParentFallback(
+  product: ProductSummary,
+  childPrices: ProductPrice[],
+  parentPrices: ProductPrice[] = [],
+): PricedProduct {
+  const child = attachPrice(product, childPrices);
+  if (parentPrices.length === 0) {
+    return {
+      ...child,
+      currency: child.currency ?? 'INR',
+    };
+  }
+  const parent = attachPrice(product, parentPrices);
+  const salePrice = child.salePrice ?? parent.salePrice;
+  const listPrice = child.listPrice ?? parent.listPrice;
+  const discountPercent =
+    listPrice != null && salePrice != null ? computeDiscountPercent(listPrice, salePrice) : undefined;
+  return {
+    ...child,
+    salePrice,
+    listPrice,
+    currency: child.currency ?? parent.currency ?? 'INR',
     discountPercent: discountPercent && discountPercent > 0 ? discountPercent : undefined,
   };
 }

@@ -4,22 +4,61 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ROUTES } from '@/constants';
-import { formatOrderStatus } from '@/lib/order-status';
+import {
+  formatItemShipStatus,
+  formatOrderStatus,
+  remainingOrderQty,
+} from '@/lib/order-status';
 import { formatCurrency } from '@/lib/utils';
 import { cancelOrder, getOrder } from '@/services/orders.client';
-import type { OrderItem, OrderSummary } from '@/types/commerce';
+import type { OrderFulfillment, OrderItem, OrderSummary } from '@/types/commerce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 function remainingQty(item: OrderItem): number {
-  const qty = Number(item.quantity) || 0;
-  const cancelled = Number(item.cancelQuantity) || 0;
-  return Math.max(qty - cancelled, 0);
+  return remainingOrderQty(item);
 }
 
 function canCancelOrder(order: OrderSummary): boolean {
   const status = order.statusId ?? 'ORDER_CREATED';
   return status !== 'ORDER_COMPLETED' && status !== 'ORDER_CANCELLED';
+}
+
+function courierLabel(f: OrderFulfillment): string {
+  return f.carrierProvider || f.shippingMethodName || 'Courier';
+}
+
+function TrackingLink({ fulfillment }: { fulfillment: OrderFulfillment }) {
+  const id = fulfillment.trackingNumber?.trim();
+  if (!id) return <span className="text-muted-foreground">—</span>;
+  if (fulfillment.trackUrl) {
+    return (
+      <a
+        href={fulfillment.trackUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="font-medium underline underline-offset-2"
+      >
+        {id}
+      </a>
+    );
+  }
+  return <span className="font-medium">{id}</span>;
+}
+
+function fulfillmentsForItem(
+  fulfillments: OrderFulfillment[] | undefined,
+  orderItemSeqId: string | undefined,
+): Array<OrderFulfillment & { lineQty: number }> {
+  if (!orderItemSeqId || !fulfillments?.length) return [];
+  const rows: Array<OrderFulfillment & { lineQty: number }> = [];
+  for (const f of fulfillments) {
+    const line = (f.items ?? []).find((i) => i.orderItemSeqId === orderItemSeqId);
+    if (line && Number(line.quantity) > 0) {
+      rows.push({ ...f, lineQty: Number(line.quantity) });
+    }
+  }
+  return rows;
 }
 
 export default function AccountOrderDetailPage() {
@@ -48,6 +87,8 @@ export default function AccountOrderDetailPage() {
       (item) => remainingQty(item) > 0 && item.statusId !== 'ITEM_CANCELLED',
     );
   }, [order]);
+
+  const fulfillments = order?.fulfillments ?? [];
 
   /** Single line with qty 1 — only justification is needed. */
   const simpleCancel =
@@ -107,7 +148,6 @@ export default function AccountOrderDetailPage() {
           return;
         }
 
-        // If every remaining unit is selected, cancel the full order
         const selectedCoversAll = cancellableItems.every((item) => {
           const seqId = item.orderItemSeqId ?? '';
           const rem = remainingQty(item);
@@ -170,20 +210,51 @@ export default function AccountOrderDetailPage() {
         </div>
       </div>
 
+      {fulfillments.length > 0 && (
+        <div className="rounded-lg border">
+          <div className="border-b p-4 text-sm font-semibold uppercase">Tracking</div>
+          <ul className="divide-y">
+            {fulfillments.map((f) => (
+              <li key={f.fulfillmentId} className="space-y-1 p-4 text-sm">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="font-medium">{courierLabel(f)}</p>
+                  {f.shippedDate && (
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(f.shippedDate).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                <p className="text-muted-foreground">
+                  Tracking ID: <TrackingLink fulfillment={f} />
+                </p>
+                {f.shippingMethodName && f.carrierProvider && (
+                  <p className="text-xs text-muted-foreground">Service: {f.shippingMethodName}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="rounded-lg border">
-        <div className="border-b p-4 font-semibold uppercase text-sm">Items</div>
+        <div className="border-b p-4 text-sm font-semibold uppercase">Items</div>
         <ul className="divide-y">
           {(order.items ?? []).map((item) => {
             const rem = remainingQty(item);
             const cancelled = Number(item.cancelQuantity) || 0;
+            const shipped = Number(item.shippedQuantity) || 0;
+            const itemShipments = fulfillmentsForItem(fulfillments, item.orderItemSeqId);
             return (
               <li
                 key={`${item.productId}-${item.orderItemSeqId ?? ''}`}
                 className="flex justify-between gap-4 p-4 text-sm"
               >
-                <div>
+                <div className="min-w-0 space-y-1">
                   <p>
                     {item.productId} × {Number(item.quantity)}
+                  </p>
+                  <p className="text-xs font-medium text-foreground">
+                    {formatItemShipStatus(item)}
                   </p>
                   {cancelled > 0 && (
                     <p className="text-xs text-muted-foreground">
@@ -191,13 +262,25 @@ export default function AccountOrderDetailPage() {
                       {rem > 0 ? ` · Remaining: ${rem}` : ' · Fully cancelled'}
                     </p>
                   )}
-                  {item.statusId && (
+                  {shipped > 0 && shipped < rem && (
                     <p className="text-xs text-muted-foreground">
-                      {formatOrderStatus(item.statusId)}
+                      Shipped {shipped} of {rem} — awaiting remaining units
                     </p>
                   )}
+                  {itemShipments.length > 0 && (
+                    <ul className="mt-2 space-y-1.5 border-l-2 border-muted pl-3">
+                      {itemShipments.map((f) => (
+                        <li key={`${f.fulfillmentId}-${item.orderItemSeqId}`} className="text-xs">
+                          <span className="text-muted-foreground">
+                            Qty {f.lineQty} · {courierLabel(f)} · Tracking:{' '}
+                          </span>
+                          <TrackingLink fulfillment={f} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                <span>
+                <span className="shrink-0">
                   {formatCurrency(Number(item.unitPrice) * Number(item.quantity), order.currencyUom)}
                 </span>
               </li>

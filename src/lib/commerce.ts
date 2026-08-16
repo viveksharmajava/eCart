@@ -18,7 +18,9 @@ export function computeCartTotals(
   const afterDiscount = Math.max(0, subtotal - discount);
   // Shipping is not charged in storefront checkout (no hardcoded rates).
   const shipping = 0;
-  const currency = items[0]?.currency ?? STORE_CONFIG.defaultCurrency;
+  const currency =
+    items.find((i) => i.currency && /^[A-Za-z]{3}$/i.test(i.currency))?.currency?.toUpperCase() ??
+    STORE_CONFIG.defaultCurrency;
 
   return {
     subtotal,
@@ -51,7 +53,9 @@ export function cartToOrderPayload(
 ): CreateOrderPayload {
   return {
     partyId,
-    currencyUom: items[0]?.currency ?? STORE_CONFIG.defaultCurrency,
+    currencyUom:
+      items.find((i) => i.currency && /^[A-Za-z]{3}$/i.test(i.currency))?.currency?.toUpperCase() ??
+      STORE_CONFIG.defaultCurrency,
     productStoreId: STORE_CONFIG.productStoreId,
     orderName,
     items: items.map((item) => ({

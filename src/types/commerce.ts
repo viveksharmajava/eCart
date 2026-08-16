@@ -58,6 +58,28 @@ export interface OrderItem {
   orderItemSeqId?: string;
   statusId?: string;
   cancelQuantity?: number;
+  /** Quantity already included in one or more shipments. */
+  shippedQuantity?: number;
+}
+
+export interface OrderFulfillmentItem {
+  orderItemSeqId: string;
+  quantity: number;
+}
+
+export interface OrderFulfillment {
+  fulfillmentId: string;
+  orderId?: string;
+  shipGroupSeqId?: string;
+  shippingMethodId?: string;
+  shippingMethodName?: string;
+  carrierProvider?: string;
+  trackingNumber?: string;
+  trackUrl?: string;
+  shippingInstructions?: string;
+  shippedDate?: string;
+  createdBy?: string;
+  items?: OrderFulfillmentItem[];
 }
 
 export interface OrderSummary {
@@ -69,6 +91,7 @@ export interface OrderSummary {
   orderName?: string;
   partyId?: string;
   items?: OrderItem[];
+  fulfillments?: OrderFulfillment[];
 }
 
 export interface Review {
