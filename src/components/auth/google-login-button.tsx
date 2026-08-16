@@ -13,12 +13,19 @@ declare global {
             callback: (response: { credential: string }) => void;
             auto_select?: boolean;
             cancel_on_tap_outside?: boolean;
+            use_fedcm_for_prompt?: boolean;
           }) => void;
-          prompt: () => void;
-          renderButton?: (
+          prompt: (momentListener?: (notification: {
+            isNotDisplayed: () => boolean;
+            isSkippedMoment: () => boolean;
+            getNotDisplayedReason?: () => string;
+            getSkippedReason?: () => string;
+          }) => void) => void;
+          renderButton: (
             parent: HTMLElement,
             options: Record<string, unknown>,
           ) => void;
+          cancel?: () => void;
         };
       };
     };
@@ -59,22 +66,73 @@ export function GoogleLoginButton({
   onCredential,
   disabled,
   className,
-  label = 'Use Google Login',
+  label = 'Continue with Google',
 }: GoogleLoginButtonProps) {
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scriptError, setScriptError] = useState('');
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() ?? '';
   const callbackRef = useRef(onCredential);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
   callbackRef.current = onCredential;
+
+  const handleCredential = useCallback(async (credential: string) => {
+    setLoading(true);
+    setScriptError('');
+    try {
+      await callbackRef.current(credential);
+    } catch (err) {
+      setScriptError(err instanceof Error ? err.message : 'Google login failed');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!clientId) return;
 
+    let cancelled = false;
+
+    const initializeGoogle = () => {
+      if (cancelled || !window.google?.accounts?.id) {
+        setScriptError('Google Sign-In failed to initialize.');
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response) => {
+          if (response.credential) {
+            void handleCredential(response.credential);
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      const host = googleBtnRef.current;
+      if (host) {
+        host.innerHTML = '';
+        window.google.accounts.id.renderButton(host, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: Math.max(host.clientWidth || 0, 320),
+        });
+      }
+
+      setReady(true);
+    };
+
     const existing = document.querySelector<HTMLScriptElement>('script[data-google-gsi="true"]');
     if (existing && window.google?.accounts?.id) {
-      setReady(true);
-      return;
+      initializeGoogle();
+      return () => {
+        cancelled = true;
+      };
     }
 
     const script = existing ?? document.createElement('script');
@@ -86,28 +144,7 @@ export function GoogleLoginButton({
       document.body.appendChild(script);
     }
 
-    const onLoad = () => {
-      if (!window.google?.accounts?.id) {
-        setScriptError('Google Sign-In failed to initialize.');
-        return;
-      }
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response) => {
-          if (!response.credential) return;
-          setLoading(true);
-          try {
-            await callbackRef.current(response.credential);
-          } finally {
-            setLoading(false);
-          }
-        },
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-      setReady(true);
-    };
-
+    const onLoad = () => initializeGoogle();
     const onError = () => setScriptError('Unable to load Google Sign-In.');
 
     script.addEventListener('load', onLoad);
@@ -115,12 +152,13 @@ export function GoogleLoginButton({
     if (window.google?.accounts?.id) onLoad();
 
     return () => {
+      cancelled = true;
       script.removeEventListener('load', onLoad);
       script.removeEventListener('error', onError);
     };
-  }, [clientId]);
+  }, [clientId, handleCredential]);
 
-  const handleClick = useCallback(() => {
+  const handleFallbackClick = useCallback(() => {
     if (!clientId) {
       setScriptError(
         'Google login is not configured. Set NEXT_PUBLIC_GOOGLE_CLIENT_ID in ecart .env.',
@@ -132,25 +170,48 @@ export function GoogleLoginButton({
       return;
     }
     setScriptError('');
-    window.google.accounts.id.prompt();
+    window.google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        setScriptError(
+          'Google One Tap was blocked. Use the Google button above, and ensure http://localhost:3000 is an Authorized JavaScript origin in Google Cloud Console.',
+        );
+      }
+    });
   }, [clientId, ready]);
 
   return (
-    <div className="space-y-2">
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={disabled || loading}
+    <div className={cn('space-y-3', className)}>
+      {/* Official GIS button (most reliable) */}
+      <div
+        ref={googleBtnRef}
         className={cn(
-          'inline-flex h-12 w-full items-center justify-center gap-3 rounded-md border border-[#dadce0] bg-white px-4 text-sm font-semibold text-[#3c4043] shadow-sm transition-colors',
-          'hover:bg-[#f8f9fa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled:cursor-not-allowed disabled:opacity-60',
-          className,
+          'flex min-h-12 w-full items-center justify-center overflow-hidden rounded-md',
+          (disabled || loading) && 'pointer-events-none opacity-60',
         )}
-      >
-        <GoogleIcon className="h-5 w-5 shrink-0" />
-        <span>{loading ? 'Connecting to Google…' : label}</span>
-      </button>
+        aria-label={label}
+      />
+
+      {/* Fallback custom trigger if GIS button fails to render */}
+      {clientId && !ready && !scriptError && (
+        <p className="text-center text-xs text-muted-foreground">Loading Google Sign-In…</p>
+      )}
+
+      {ready && (
+        <button
+          type="button"
+          onClick={handleFallbackClick}
+          disabled={disabled || loading}
+          className={cn(
+            'inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-dashed border-muted-foreground/40 bg-transparent px-3 text-xs font-medium text-muted-foreground',
+            'hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'disabled:cursor-not-allowed disabled:opacity-60',
+          )}
+        >
+          <GoogleIcon className="h-4 w-4 shrink-0" />
+          {loading ? 'Signing in…' : 'Try Google One Tap'}
+        </button>
+      )}
+
       {scriptError && <p className="text-xs text-destructive">{scriptError}</p>}
       {!clientId && (
         <p className="text-xs text-muted-foreground">
