@@ -1,0 +1,34 @@
+name: Deploy UI to GCP
+
+on:
+  push:
+    branches:
+      - main # Change this if your default branch is master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Pull down the source code from GitHub
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Log in securely to GCP using your saved Service Account JSON Key
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # 3. Configure Docker to safely talk to your specific Artifact Registry region
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+      # 4. Build the Next.js container image and upload it to Google Cloud
+      #    Runtime API URLs (CATALOG_API_BASE, CATALOG_PROXY_TARGET, etc.) are set on Cloud Run.
+      #    Optional build-args for NEXT_PUBLIC_* can be added here when you have prod values.
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t asia-south1-docker.pkg.dev/project-3e935033-4ac7-4904-bad/ecommerce-apps/ecart-ui:latest .
+          docker push asia-south1-docker.pkg.dev/project-3e935033-4ac7-4904-bad/ecommerce-apps/ecart-ui:latest

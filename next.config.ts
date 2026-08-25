@@ -12,6 +12,8 @@ const allowedDevOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? '10.30.169.213')
   .filter(Boolean);
 
 const nextConfig: NextConfig = {
+  // Required for the slim production Docker image (copies .next/standalone).
+  output: 'standalone',
   allowedDevOrigins,
   images: {
     // Local SVG heroes + catalog images; skip optimizer for SVG / blocked external CDNs
