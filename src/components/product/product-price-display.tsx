@@ -64,12 +64,13 @@ export function ProductPriceDisplay({
     </span>
   );
 
-  const mrpBlock = mrpVisible && (
-    <span className={mrpClass}>
-      {showLabels && <span className="mr-1 text-xs font-normal uppercase">MRP </span>}
-      {formatCurrency(listPrice, currency)}
-    </span>
-  );
+  const mrpBlock =
+    mrpVisible && listPrice != null ? (
+      <span className={mrpClass}>
+        {showLabels && <span className="mr-1 text-xs font-normal uppercase">MRP </span>}
+        {formatCurrency(listPrice, currency)}
+      </span>
+    ) : null;
 
   const offerBlock =
     showOffer && offer != null && offer > 0 ? (
