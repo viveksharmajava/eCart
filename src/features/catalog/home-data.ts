@@ -47,13 +47,13 @@ async function loadHeroSlidesFromCatalogs(): Promise<HeroSlide[]> {
 
     const catalogs = pickStorefrontCatalogs(allCatalogs, storeSettings.catalogIds ?? []);
 
-    return catalogs
-      .map((catalog) => {
-        const imageUrl = resolveCatalogHeaderImageUrl(catalog.prodCatalogId, catalog.headerLogo);
-        if (!imageUrl) return null;
+    return catalogs.flatMap((catalog) => {
+      const imageUrl = resolveCatalogHeaderImageUrl(catalog.prodCatalogId, catalog.headerLogo);
+      if (!imageUrl) return [];
 
-        const title = catalog.catalogName?.trim() || catalog.prodCatalogId;
-        return {
+      const title = catalog.catalogName?.trim() || catalog.prodCatalogId;
+      return [
+        {
           id: catalog.prodCatalogId,
           title,
           subtitle: `Explore the latest from ${title}.`,
@@ -61,9 +61,9 @@ async function loadHeroSlidesFromCatalogs(): Promise<HeroSlide[]> {
           ctaHref: productsCatalogHref(catalog.prodCatalogId, title),
           imageUrl,
           imageAlt: `${title} catalog`,
-        } satisfies HeroSlide;
-      })
-      .filter((slide): slide is HeroSlide => slide != null);
+        } satisfies HeroSlide,
+      ];
+    });
   } catch (error) {
     console.error('[home] Failed to load catalog hero slides', error);
     return [];

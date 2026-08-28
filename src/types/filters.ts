@@ -45,6 +45,7 @@ export interface EnrichedListProduct {
   description?: string;
   statusId?: string;
   requireInventory?: boolean;
+  sku?: string;
   listPrice?: number;
   salePrice?: number;
   currency?: string;

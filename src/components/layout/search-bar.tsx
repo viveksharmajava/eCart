@@ -157,6 +157,7 @@ export function SearchBar({ onClose, variant = 'default', className }: SearchBar
                     key={s.label}
                     type="button"
                     role="option"
+                    aria-selected={false}
                     className="w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted"
                     onClick={() => navigateToSearch(s.label)}
                   >
