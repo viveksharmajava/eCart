@@ -5,7 +5,7 @@ import { getProductPrices } from '@/services/pricing.service';
 import { getInventorySummaries } from '@/services/facility.service';
 import { pickPrimaryProductImageUrl } from '@/lib/product-images';
 import { attachPrice, type PricedProduct } from '@/utils/pricing';
-import type { EnrichedListProduct } from '@/types/filters';
+import type { EnrichedListProduct, ProductFacets } from '@/types/filters';
 import { productSlug } from '@/lib/utils';
 
 /** Deterministic mock rating from product id (until reviews API exists). */
@@ -184,7 +184,7 @@ export function filterProducts(
   });
 }
 
-export function buildFacets(products: EnrichedListProduct[]) {
+export function buildFacets(products: EnrichedListProduct[]): ProductFacets {
   const brandMap = new Map<string, number>();
   const categoryMap = new Map<string, number>();
   const ratingBuckets = [4, 3, 2, 1];

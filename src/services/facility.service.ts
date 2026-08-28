@@ -1,5 +1,5 @@
 import { STORE_CONFIG } from '@/constants';
-import { getServiceAuthHeader, httpClient } from './http.client';
+import { httpClient } from './http.client';
 
 export interface ProductInventorySummary {
   productId: string;

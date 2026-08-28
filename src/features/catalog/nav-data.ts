@@ -5,7 +5,7 @@ import { pickBrowseCatalogCategories } from '@/features/catalog/catalog-categori
 import { getStorefrontSettings } from '@/features/store/storefront-settings';
 import type { ProdCatalogCategory, ProdCatalogSummary } from '@/types/catalog';
 import type { CatalogNavItem, NavCategoryItem } from '@/types/nav';
-import { ROUTES, SPORT_NAV } from '@/constants';
+import { SPORT_NAV } from '@/constants';
 import { cache } from 'react';
 
 function categoryHref(category: ProdCatalogCategory, catalog: ProdCatalogSummary): string {
