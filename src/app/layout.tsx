@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { AppProviders } from '@/providers/app-providers';
 import { ShopLayout } from '@/layouts/shop-layout';
 import { APP_NAME, APP_TAGLINE } from '@/constants';
+import { getAppUrl } from '@/lib/utils';
 import './globals.css';
 
 const geistSans = Geist({
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(getAppUrl()),
   title: {
     default: `${APP_NAME} — ${APP_TAGLINE}`,
     template: `%s | ${APP_NAME}`,

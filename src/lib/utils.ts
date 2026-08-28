@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Canonical public site URL. Treats blank env as missing (Docker ARG defaults can be ""). */
+export function getAppUrl(): string {
+  return process.env.NEXT_PUBLIC_APP_URL?.trim() || 'http://localhost:3000';
+}
+
 export function formatCurrency(
   amount: number,
   currency?: string | null,

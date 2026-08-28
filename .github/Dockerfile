@@ -12,8 +12,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time public env (override via --build-arg in CI / Cloud Build)
-ARG NEXT_PUBLIC_APP_URL=
+# Build-time public env (override via --build-arg in CI / Cloud Build).
+# Empty APP_URL breaks `new URL('')` during Next.js page data collection — always default.
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
 ARG NEXT_PUBLIC_CATALOG_IMAGE_BASE=
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 ARG NEXT_PUBLIC_PRODUCT_STORE_ID=OFBIZ_STORE

@@ -60,9 +60,9 @@ function resolveServerServiceOrigin(path: string): string {
     );
   }
   if (path.startsWith('/api')) {
-    return stripTrailingSlash(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
+    return stripTrailingSlash(process.env.NEXT_PUBLIC_APP_URL?.trim() || 'http://localhost:3000');
   }
-  return stripTrailingSlash(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
+  return stripTrailingSlash(process.env.NEXT_PUBLIC_APP_URL?.trim() || 'http://localhost:3000');
 }
 
 function resolveRequestUrl(path: string, override?: string): string {
