@@ -25,9 +25,9 @@ jobs:
         run: |
           gcloud auth configure-docker asia-south1-docker.pkg.dev
 
-      # 4. Build the Next.js container image and upload it to Google Cloud
-      #    Runtime API URLs (CATALOG_API_BASE, CATALOG_PROXY_TARGET, etc.) are set on Cloud Run.
-      #    Optional build-args for NEXT_PUBLIC_* can be added here when you have prod values.
+      # 4. Build the Next.js container image and upload it to Google Cloud.
+      #    Dockerfile defaults bake production Cloud Run backend URLs into rewrites + runtime env
+      #    (same hosts as application-prod.properties / CLOUD_RUN_ENV.md).
       - name: Build and Push Docker Image
         run: |
           docker build -t asia-south1-docker.pkg.dev/project-3e935033-4ac7-4904-bad/ecommerce-apps/ecart-ui:latest .

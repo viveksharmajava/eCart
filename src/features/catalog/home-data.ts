@@ -1,11 +1,9 @@
 import { cache } from 'react';
 import { STORE_CONFIG } from '@/constants';
 import {
-  findCartEnabledProdCatalogs,
   findProducts,
   getCatalogCategories,
   getCategoryProducts,
-  getCategoryTree,
   getProductImages,
   getProductsByCatalogSectionType,
 } from '@/services/catalog.service';
@@ -13,39 +11,21 @@ import { getProductPrices } from '@/services/pricing.service';
 import { pickPrimaryProductImageUrl } from '@/lib/product-images';
 import { resolveCatalogHeaderImageUrl } from '@/lib/catalog-header-images';
 import { productsCatalogHref } from '@/lib/category-links';
-import { getStorefrontSettings } from '@/features/store/storefront-settings';
+import { getStorefrontCatalogs } from '@/features/catalog/store-catalogs';
 import { attachPrice, type PricedProduct } from '@/utils/pricing';
-import type { CategoryNode, HeroSlide, ProductSummary, ProdCatalogSummary } from '@/types/catalog';
+import type { HeroSlide, ProductSummary, ProdCatalogSummary } from '@/types/catalog';
 
 const EMPTY_HOME_DATA = {
   heroSlides: [] as HeroSlide[],
   bestSellers: [] as Array<PricedProduct & { imageUrl?: string }>,
   trending: [] as Array<PricedProduct & { imageUrl?: string }>,
-  categories: [] as CategoryNode[],
+  catalogs: [] as ProdCatalogSummary[],
   catalogCategories: [] as Awaited<ReturnType<typeof getCatalogCategories>>,
 };
 
-function pickStorefrontCatalogs(
-  allCatalogs: ProdCatalogSummary[],
-  allowedIds: string[],
-): ProdCatalogSummary[] {
-  if (allowedIds.length === 0) return allCatalogs;
-  const idSet = new Set(allowedIds);
-  const filtered = allCatalogs.filter((c) => idSet.has(c.prodCatalogId));
-  if (filtered.length === 0) return allCatalogs;
-  return allowedIds
-    .map((id) => filtered.find((c) => c.prodCatalogId === id))
-    .filter((c): c is ProdCatalogSummary => Boolean(c));
-}
-
 async function loadHeroSlidesFromCatalogs(): Promise<HeroSlide[]> {
   try {
-    const [storeSettings, allCatalogs] = await Promise.all([
-      getStorefrontSettings(),
-      findCartEnabledProdCatalogs(24),
-    ]);
-
-    const catalogs = pickStorefrontCatalogs(allCatalogs, storeSettings.catalogIds ?? []);
+    const catalogs = await getStorefrontCatalogs();
 
     return catalogs.flatMap((catalog) => {
       const imageUrl = resolveCatalogHeaderImageUrl(catalog.prodCatalogId, catalog.headerLogo);
@@ -58,7 +38,7 @@ async function loadHeroSlidesFromCatalogs(): Promise<HeroSlide[]> {
           title,
           subtitle: `Explore the latest from ${title}.`,
           ctaLabel: `Shop ${title}`,
-          ctaHref: productsCatalogHref(catalog.prodCatalogId, title),
+          ctaHref: productsCatalogHref(catalog.prodCatalogId),
           imageUrl,
           imageAlt: `${title} catalog`,
         } satisfies HeroSlide,
@@ -117,12 +97,12 @@ async function loadSectionProducts(
 
 export const getHomePageData = cache(async function getHomePageData() {
   try {
-    const [heroSlides, bestSellers, trending, categoryTree, catalogCategories] =
+    const [heroSlides, bestSellers, trending, catalogs, catalogCategories] =
       await Promise.all([
         loadHeroSlidesFromCatalogs(),
         loadSectionProducts(STORE_CONFIG.bestSellerType, STORE_CONFIG.bestSellerFallback),
         loadSectionProducts(STORE_CONFIG.trendingType, STORE_CONFIG.trendingFallback),
-        getCategoryTree().catch(() => [] as CategoryNode[]),
+        getStorefrontCatalogs(),
         getCatalogCategories().catch(() => []),
       ]);
 
@@ -130,7 +110,7 @@ export const getHomePageData = cache(async function getHomePageData() {
       heroSlides,
       bestSellers,
       trending,
-      categories: categoryTree,
+      catalogs,
       catalogCategories,
     };
   } catch (error) {

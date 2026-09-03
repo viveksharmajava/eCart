@@ -1,8 +1,18 @@
 import Link from 'next/link';
 import { APP_NAME, ROUTES } from '@/constants';
 import { Separator } from '@/components/ui/separator';
+import { getCatalogNav } from '@/features/catalog/nav-data';
 
 export async function SiteFooter() {
+  const catalogNav = await getCatalogNav();
+  const shopLinks = [
+    { label: 'All Products', href: ROUTES.products },
+    ...catalogNav.slice(0, 6).map((item) => ({
+      label: item.label,
+      href: item.href,
+    })),
+  ];
+
   const footerLinks = {
     support: [
       { label: 'Help Center', href: ROUTES.help },
@@ -15,12 +25,7 @@ export async function SiteFooter() {
       { label: 'Privacy Policy', href: ROUTES.privacy },
       { label: 'Terms & Conditions', href: ROUTES.terms },
     ],
-    shop: [
-      { label: 'All Products', href: ROUTES.products },
-      { label: 'Badminton', href: '/products?category=badminton' },
-      { label: 'Cricket', href: '/products?category=cricket' },
-      { label: 'Sports Shoes', href: '/products?category=sports-shoes' },
-    ],
+    shop: shopLinks,
   };
 
   return (

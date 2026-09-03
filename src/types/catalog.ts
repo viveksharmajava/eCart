@@ -101,6 +101,17 @@ export interface ProdCatalogSummary {
   isCartEnabled?: boolean;
 }
 
+/** ProductStoreCatalog row from GET /catalog/product-stores/{id}/catalogs */
+export interface ProductStoreCatalog {
+  productStoreId?: string;
+  prodCatalogId: string;
+  catalogName?: string;
+  storeName?: string;
+  fromDate?: string;
+  thruDate?: string;
+  sequenceNum?: number;
+}
+
 export interface ProdCatalogCategory {
   prodCatalogId: string;
   categoryId: string;

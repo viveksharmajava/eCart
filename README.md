@@ -96,13 +96,17 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for:
 
 ## Environment
 
-Copy `.env.example` to `.env.local`. Key variables:
+Copy `.env.example` to `.env.local` for **local** development (localhost backends).
+
+Production builds use [`.env.production`](./.env.production) (Cloud Run service URLs). Docker image defaults match those URLs so production never falls back to localhost.
 
 | Variable | Purpose |
 |----------|---------|
+| `CATALOG_API_BASE` / `*_PROXY_TARGET` | Backend origins (localhost locally; Cloud Run in prod) |
 | `CATALOG_SERVICE_AUTH_HEADER` | Server-side auth for BFF → catalog API |
 | `NEXT_PUBLIC_DEFAULT_CATALOG_ID` | Homepage catalog sections |
 | `NEXT_PUBLIC_APP_URL` | Canonical URL for SEO |
+| `NEXT_PUBLIC_CATALOG_IMAGE_BASE` | Public catalog image origin |
 
 ## Scripts
 

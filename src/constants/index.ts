@@ -32,13 +32,6 @@ export const ROUTES = {
   shipping: '/pages/shipping-policy',
 } as const;
 
-export const SPORT_NAV = [
-  { label: 'Badminton', href: '/products?category=badminton' },
-  { label: 'Cricket', href: '/products?category=cricket' },
-  { label: 'Sports Shoes', href: '/products?category=sports-shoes' },
-  { label: 'Other Sports', href: '/products?category=other-sports' },
-] as const;
-
 export const STORE_CONFIG = {
   productStoreId: process.env.NEXT_PUBLIC_PRODUCT_STORE_ID ?? 'OFBIZ_STORE',
   defaultCatalogId: process.env.NEXT_PUBLIC_DEFAULT_CATALOG_ID ?? 'DEMO_CATALOG',

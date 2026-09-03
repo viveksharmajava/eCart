@@ -7,13 +7,15 @@ function parseFilters(searchParams: URLSearchParams): ProductFilters {
   const maxPrice = searchParams.get('maxPrice');
   const minRating = searchParams.get('minRating');
   const sort = searchParams.get('sort') as ProductSortOption | null;
+  const catalog = searchParams.get('catalog') ?? undefined;
+  const catalogId = searchParams.get('catalogId') ?? catalog ?? undefined;
 
   return {
     q: searchParams.get('q') ?? undefined,
     category: searchParams.get('category') ?? undefined,
     categoryId: searchParams.get('categoryId') ?? undefined,
-    catalog: searchParams.get('catalog') ?? undefined,
-    catalogId: searchParams.get('catalogId') ?? undefined,
+    catalog: catalog ?? catalogId,
+    catalogId,
     brand: searchParams.get('brand') ?? undefined,
     minPrice: minPrice ? Number(minPrice) : undefined,
     maxPrice: maxPrice ? Number(maxPrice) : undefined,

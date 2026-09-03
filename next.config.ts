@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
       { protocol: 'http', hostname: '127.0.0.1', port: '8085', pathname: '/catalog/category-images/**' },
       { protocol: 'http', hostname: 'localhost', port: '8085', pathname: '/catalog/catalog-images/**' },
       { protocol: 'http', hostname: '127.0.0.1', port: '8085', pathname: '/catalog/catalog-images/**' },
+      {
+        protocol: 'https',
+        hostname: 'catalog-1089274910156.asia-south1.run.app',
+        pathname: '/catalog/**',
+      },
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
     ],
   },

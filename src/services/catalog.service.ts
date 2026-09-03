@@ -7,6 +7,7 @@ import type {
   ProductDetail,
   ProductImageInfo,
   ProductSearchRequest,
+  ProductStoreCatalog,
   ProductSummary,
   ProductVariantConfig,
 } from '@/types/catalog';
@@ -136,6 +137,37 @@ export async function findCartEnabledProdCatalogs(
   return response.content ?? [];
 }
 
+/** Catalogs linked to a product store (ProductStoreCatalog), e.g. OFBIZ_STORE. */
+export async function getStoreCatalogs(
+  productStoreId: string = STORE_CONFIG.productStoreId,
+): Promise<ProductStoreCatalog[]> {
+  const rows = await httpClient<ProductStoreCatalog[]>(
+    `/catalog/product-stores/${encodeURIComponent(productStoreId)}/catalogs`,
+    { authHeader: AUTH() },
+  );
+  return (rows ?? []).filter((row) => Boolean(row?.prodCatalogId));
+}
+
+/** Store-linked catalogs as ProdCatalogSummary, ordered by sequenceNum then name. */
+export async function getStoreProdCatalogs(
+  productStoreId: string = STORE_CONFIG.productStoreId,
+): Promise<ProdCatalogSummary[]> {
+  const rows = await getStoreCatalogs(productStoreId);
+  return [...rows]
+    .sort((a, b) => {
+      const seqA = a.sequenceNum ?? Number.MAX_SAFE_INTEGER;
+      const seqB = b.sequenceNum ?? Number.MAX_SAFE_INTEGER;
+      if (seqA !== seqB) return seqA - seqB;
+      const nameA = (a.catalogName ?? a.prodCatalogId).toLowerCase();
+      const nameB = (b.catalogName ?? b.prodCatalogId).toLowerCase();
+      return nameA.localeCompare(nameB);
+    })
+    .map((row) => ({
+      prodCatalogId: row.prodCatalogId,
+      catalogName: row.catalogName,
+    }));
+}
+
 export async function getCategoryProducts(categoryId: string): Promise<ProductSummary[]> {
   const raw = await httpClient<ApiCategoryProductMemberDto[]>(
     `/catalog/categories/${encodeURIComponent(categoryId)}/products`,
@@ -154,7 +186,7 @@ export async function getProductsByCatalogSectionType(
   typeId: string,
   limit = 8,
 ): Promise<ProductSummary[]> {
-  const catalogs = await findCartEnabledProdCatalogs();
+  const catalogs = await getStoreProdCatalogs();
   const catalogList =
     catalogs.length > 0
       ? catalogs

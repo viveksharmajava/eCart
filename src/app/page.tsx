@@ -54,11 +54,12 @@ async function TrendingSection() {
 }
 
 async function CategoriesSection() {
-  const { categories } = await getHomePageData();
+  const { catalogs } = await getHomePageData();
+  if (catalogs.length === 0) return null;
   return (
     <section className="container-store py-12 lg:py-16">
-      <SectionHeading title="Shop by Category" href={ROUTES.products} />
-      <CategoryStrip categories={categories} />
+      <SectionHeading title="Shop by Catalog" href={ROUTES.products} />
+      <CategoryStrip catalogs={catalogs} />
     </section>
   );
 }

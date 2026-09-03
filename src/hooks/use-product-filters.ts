@@ -16,12 +16,14 @@ const SORT_OPTIONS: Array<{ value: ProductSortOption; label: string }> = [
 ];
 
 function parseFiltersFromParams(params: URLSearchParams): ProductFilters {
+  const catalog = params.get('catalog') ?? undefined;
+  const catalogId = params.get('catalogId') ?? catalog ?? undefined;
   return {
     q: params.get('q') ?? undefined,
     category: params.get('category') ?? undefined,
     categoryId: params.get('categoryId') ?? undefined,
-    catalog: params.get('catalog') ?? undefined,
-    catalogId: params.get('catalogId') ?? undefined,
+    catalog: catalog ?? catalogId,
+    catalogId,
     brand: params.get('brand') ?? undefined,
     minPrice: params.get('minPrice') ? Number(params.get('minPrice')) : undefined,
     maxPrice: params.get('maxPrice') ? Number(params.get('maxPrice')) : undefined,
@@ -37,8 +39,9 @@ function filtersToParams(filters: ProductFilters): URLSearchParams {
   if (filters.q) params.set('q', filters.q);
   if (filters.category) params.set('category', filters.category);
   if (filters.categoryId) params.set('categoryId', filters.categoryId);
-  if (filters.catalog) params.set('catalog', filters.catalog);
-  if (filters.catalogId) params.set('catalogId', filters.catalogId);
+  // Prefer a single `catalog` query param using the real catalog id.
+  const catalogId = filters.catalogId ?? filters.catalog;
+  if (catalogId) params.set('catalog', catalogId);
   if (filters.brand) params.set('brand', filters.brand);
   if (filters.minPrice != null) params.set('minPrice', String(filters.minPrice));
   if (filters.maxPrice != null) params.set('maxPrice', String(filters.maxPrice));

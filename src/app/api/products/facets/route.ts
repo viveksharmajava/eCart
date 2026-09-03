@@ -22,7 +22,8 @@ async function buildCatalogCategoryFacets(catalogId: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const catalogId = searchParams.get('catalogId') ?? undefined;
+  const catalogId =
+    searchParams.get('catalogId') ?? searchParams.get('catalog') ?? undefined;
   const filters: Pick<ProductFilters, 'q' | 'brand' | 'category' | 'categoryId' | 'catalogId'> = {
     q: searchParams.get('q') ?? undefined,
     category: searchParams.get('category') ?? undefined,

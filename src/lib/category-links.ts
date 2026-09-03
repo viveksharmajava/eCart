@@ -6,24 +6,21 @@ export function productsCategoryHref(
   categoryId: string,
   categoryName?: string,
   catalogId?: string,
-  catalogName?: string,
 ): string {
   const params = new URLSearchParams();
   params.set('categoryId', categoryId);
   const label = categoryName?.trim() || categoryId;
   params.set('category', slugify(label) || categoryId);
   if (catalogId) {
-    params.set('catalogId', catalogId);
-    const catalogLabel = catalogName?.trim() || catalogId;
-    params.set('catalog', slugify(catalogLabel) || catalogId);
+    // Use the real catalog id (e.g. CRICKET), not a slugified display name.
+    params.set('catalog', catalogId);
   }
   return `${ROUTES.products}?${params.toString()}`;
 }
-/** Product listing URL for a catalog (browse-all; slug is display-only). */
-export function productsCatalogHref(catalogId: string, catalogName?: string): string {
+
+/** Product listing URL for a catalog — `catalog` is the prodCatalogId (e.g. CRICKET). */
+export function productsCatalogHref(catalogId: string): string {
   const params = new URLSearchParams();
-  params.set('catalogId', catalogId);
-  const label = catalogName?.trim() || catalogId;
-  params.set('catalog', slugify(label) || catalogId);
+  params.set('catalog', catalogId);
   return `${ROUTES.products}?${params.toString()}`;
 }

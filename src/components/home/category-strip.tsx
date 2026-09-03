@@ -1,33 +1,22 @@
 import Link from 'next/link';
-import type { CategoryNode } from '@/types/catalog';
-import { productsCategoryHref } from '@/lib/category-links';
+import type { ProdCatalogSummary } from '@/types/catalog';
+import { productsCatalogHref } from '@/lib/category-links';
 
 interface CategoryStripProps {
-  categories: CategoryNode[];
+  catalogs: ProdCatalogSummary[];
 }
 
-const FALLBACK_CATEGORIES = [
-  { categoryId: 'badminton', categoryName: 'Badminton', image: '/images/categories/badminton.jpg' },
-  { categoryId: 'cricket', categoryName: 'Cricket', image: '/images/categories/cricket.jpg' },
-  { categoryId: 'sports-shoes', categoryName: 'Sports Shoes', image: '/images/categories/shoes.jpg' },
-  { categoryId: 'other-sports', categoryName: 'Other Sports', image: '/images/categories/other.jpg' },
-];
+export function CategoryStrip({ catalogs }: CategoryStripProps) {
+  const items = catalogs
+    .filter((c) => c.prodCatalogId)
+    .slice(0, 8)
+    .map((c) => ({
+      id: c.prodCatalogId,
+      name: c.catalogName?.trim() || c.prodCatalogId,
+      href: productsCatalogHref(c.prodCatalogId),
+    }));
 
-export function CategoryStrip({ categories }: CategoryStripProps) {
-  const validCategories = categories.filter((c) => c.categoryId);
-
-  const items =
-    validCategories.length > 0
-      ? validCategories.slice(0, 8).map((c) => ({
-          id: c.categoryId,
-          name: c.categoryName ?? c.categoryId,
-          href: productsCategoryHref(c.categoryId, c.categoryName),
-        }))
-      : FALLBACK_CATEGORIES.map((c) => ({
-          id: c.categoryId,
-          name: c.categoryName,
-          href: productsCategoryHref(c.categoryId, c.categoryName),
-        }));
+  if (items.length === 0) return null;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
