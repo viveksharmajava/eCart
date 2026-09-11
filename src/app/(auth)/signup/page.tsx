@@ -46,7 +46,8 @@ export default function SignupPage() {
         password: data.password,
         mobile: data.mobile,
       });
-      router.push(ROUTES.account);
+      router.replace(ROUTES.account);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     }
@@ -57,7 +58,8 @@ export default function SignupPage() {
     setGoogleLoading(true);
     try {
       await loginWithGoogle(idToken);
-      router.push(ROUTES.account);
+      router.replace(ROUTES.account);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google login failed');
     } finally {

@@ -75,3 +75,15 @@ export function parseSessionCookie(value: string | undefined): SessionPayload | 
 export function serializeSessionCookie(session: SessionPayload): string {
   return encodeURIComponent(JSON.stringify(session));
 }
+
+/** Shared Set-Cookie options for auth session (login / register / Google). */
+export function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+    // Required for browsers to persist cookies on HTTPS Cloud Run hosts
+    secure: process.env.NODE_ENV === 'production',
+  };
+}

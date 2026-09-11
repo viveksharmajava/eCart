@@ -34,7 +34,8 @@ export default function LoginForm() {
 
   function redirectAfterAuth() {
     const redirect = searchParams.get('redirect') ?? ROUTES.account;
-    router.push(redirect);
+    router.replace(redirect);
+    router.refresh();
   }
 
   async function onSubmit(data: FormData) {

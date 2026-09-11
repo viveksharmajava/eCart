@@ -3,6 +3,7 @@ import { httpClient } from '@/services/http.client';
 import {
   SESSION_COOKIE,
   serializeSessionCookie,
+  sessionCookieOptions,
   sessionFromLogin,
   sessionToUser,
 } from '@/lib/session';
@@ -31,12 +32,7 @@ export async function POST(request: Request) {
       user: sessionToUser(session),
       authHeader: session.authHeader,
     });
-    response.cookies.set(SESSION_COOKIE, serializeSessionCookie(session), {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    response.cookies.set(SESSION_COOKIE, serializeSessionCookie(session), sessionCookieOptions());
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Registration failed';

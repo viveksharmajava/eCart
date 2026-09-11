@@ -15,6 +15,9 @@ import { useCheckoutStore } from '@/store/checkout.store';
 
 /** Avoid re-hydrating the same party data repeatedly in one browser session. */
 let lastHydratedPartyId: string | null = null;
+/** Single in-flight hydrate shared by every useAuth() consumer (header, cart sync, login, …). */
+let hydrationInFlight: Promise<boolean> | null = null;
+let hydrationPartyId: string | null = null;
 
 function clearStaleAddressCache() {
   if (typeof window !== 'undefined') {
@@ -30,9 +33,39 @@ async function hydrateUserData(user: User, authHeader: string): Promise<boolean>
     ]);
     return true;
   } catch {
-    // Leave lastHydratedPartyId unset so the next mount/login can retry
     return false;
   }
+}
+
+/**
+ * Dedupes cart/address hydration across concurrent useAuth mounts.
+ * Marks partyId as hydrated after the first attempt so a failed call cannot loop forever.
+ */
+async function ensureHydrated(user: User, authHeader: string): Promise<boolean> {
+  if (!user.partyId) return true;
+  if (lastHydratedPartyId === user.partyId) return true;
+  if (hydrationInFlight && hydrationPartyId === user.partyId) {
+    return hydrationInFlight;
+  }
+
+  const partyId = user.partyId;
+  hydrationPartyId = partyId;
+  hydrationInFlight = (async () => {
+    clearStaleAddressCache();
+    try {
+      return await hydrateUserData(user, authHeader);
+    } finally {
+      // Stop infinite re-fetch loops even when party APIs error
+      lastHydratedPartyId = partyId;
+    }
+  })().finally(() => {
+    if (hydrationPartyId === partyId) {
+      hydrationInFlight = null;
+      hydrationPartyId = null;
+    }
+  });
+
+  return hydrationInFlight;
 }
 
 async function fetchMe(): Promise<User | null> {
@@ -44,6 +77,7 @@ async function fetchMe(): Promise<User | null> {
 
 export function useAuth() {
   const { user, authHeader, isAuthenticated, setSession, clearSession } = useAuthStore();
+  const partyId = user?.partyId ?? null;
   const [loading, setLoading] = useState(!isAuthenticated);
 
   useEffect(() => {
@@ -52,13 +86,9 @@ export function useAuth() {
     async function init() {
       if (isAuthenticated && user) {
         setLoading(false);
-        if (user.partyId && lastHydratedPartyId !== user.partyId) {
-          clearStaleAddressCache();
+        if (partyId) {
           const header = authHeader ?? `${user.username}:CUSTOMER`;
-          const ok = await hydrateUserData(user, header);
-          if (!cancelled && ok) {
-            lastHydratedPartyId = user.partyId;
-          }
+          await ensureHydrated(user, header);
         }
         return;
       }
@@ -68,12 +98,8 @@ export function useAuth() {
         if (cancelled || !me) return;
         const header = `${me.username}:CUSTOMER`;
         setSession(me, header);
-        if (me.partyId && lastHydratedPartyId !== me.partyId) {
-          clearStaleAddressCache();
-          const ok = await hydrateUserData(me, header);
-          if (!cancelled && ok) {
-            lastHydratedPartyId = me.partyId;
-          }
+        if (me.partyId) {
+          await ensureHydrated(me, header);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -84,7 +110,8 @@ export function useAuth() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, user, authHeader, setSession]);
+    // Depend on partyId (string), not `user` object identity — avoids hydrate storms.
+  }, [isAuthenticated, partyId, authHeader, user, setSession]);
 
   const establishSession = useCallback(
     async (nextUser: User, authHeaderFromLogin?: string) => {
@@ -100,12 +127,12 @@ export function useAuth() {
       useCartStore.getState().clearCart();
       useCheckoutStore.getState().reset();
       clearStaleAddressCache();
-      setSession(normalizedUser, header);
       lastHydratedPartyId = null;
-      const ok = await hydrateUserData(normalizedUser, header);
-      if (ok && normalizedUser.partyId) {
-        lastHydratedPartyId = normalizedUser.partyId;
-      }
+      hydrationInFlight = null;
+      hydrationPartyId = null;
+      setSession(normalizedUser, header);
+      // Hydrate in background so login can redirect immediately
+      void ensureHydrated(normalizedUser, header);
       return normalizedUser;
     },
     [setSession],
@@ -174,6 +201,8 @@ export function useAuth() {
     useCheckoutStore.getState().reset();
     clearStaleAddressCache();
     lastHydratedPartyId = null;
+    hydrationInFlight = null;
+    hydrationPartyId = null;
     await fetch('/api/auth/logout', { method: 'POST' });
     clearSession();
   }, [clearSession]);
